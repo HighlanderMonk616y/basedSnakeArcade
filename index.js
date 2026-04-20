@@ -66,10 +66,48 @@ function draw() {
     return;
   }
 
-  // Draw snake with neon green
-  ctx.fillStyle = '#0f0';
-  snake.forEach(segment => {
-    ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+  // Draw snake
+  snake.forEach((segment, index) => {
+    if (index === 0) {
+      // Snake head - brighter with direction eye
+      ctx.fillStyle = '#0f0';
+      ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      
+      // Eye dot
+      ctx.fillStyle = '#000';
+      const eyeSize = 4;
+      let eyeX1, eyeY1, eyeX2, eyeY2;
+      
+      if (dx === 1) { // right
+        eyeX1 = segment.x * GRID_SIZE + 12;
+        eyeY1 = segment.y * GRID_SIZE + 6;
+        eyeX2 = segment.x * GRID_SIZE + 12;
+        eyeY2 = segment.y * GRID_SIZE + 12;
+      } else if (dx === -1) { // left
+        eyeX1 = segment.x * GRID_SIZE + 4;
+        eyeY1 = segment.y * GRID_SIZE + 6;
+        eyeX2 = segment.x * GRID_SIZE + 4;
+        eyeY2 = segment.y * GRID_SIZE + 12;
+      } else if (dy === -1) { // up
+        eyeX1 = segment.x * GRID_SIZE + 6;
+        eyeY1 = segment.y * GRID_SIZE + 4;
+        eyeX2 = segment.x * GRID_SIZE + 12;
+        eyeY2 = segment.y * GRID_SIZE + 4;
+      } else { // down
+        eyeX1 = segment.x * GRID_SIZE + 6;
+        eyeY1 = segment.y * GRID_SIZE + 14;
+        eyeX2 = segment.x * GRID_SIZE + 12;
+        eyeY2 = segment.y * GRID_SIZE + 14;
+      }
+      
+      ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
+      ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
+    } else {
+      // Snake body - slightly darker green
+      const shade = Math.max(80, 255 - index * 8);
+      ctx.fillStyle = `rgb(0, ${shade}, 0)`;
+      ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+    }
   });
 
   // Draw food with bright red
@@ -176,4 +214,4 @@ document.addEventListener('keydown', e => {
 // Initial draw (shows title screen)
 draw();
 
-console.log("Basecade Commit #3 - Start screen & Game Over added. Press SPACE to begin!");
+console.log("Basecade Commit #4 - Improved snake visuals with head and gradient body. Press SPACE to play!");

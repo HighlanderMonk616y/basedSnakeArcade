@@ -23,6 +23,7 @@ let food = {x: 15, y: 15};
 let score = 0;
 let gameOver = false;
 let gameRunning = false;
+let gameStarted = false;
 
 let lastTime = 0;
 const GAME_SPEED = 100; // milliseconds per move
@@ -31,6 +32,39 @@ function draw() {
   // Clear canvas with retro dark background
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (!gameStarted) {
+    // Title screen
+    ctx.fillStyle = '#0f0';
+    ctx.font = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('BASECADE', canvas.width/2, 80);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '18px monospace';
+    ctx.fillText('CLASSIC SNAKE', canvas.width/2, 120);
+
+    ctx.font = '16px monospace';
+    ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
+    ctx.fillText('← ↑ ↓ →  to move', canvas.width/2, 230);
+    return;
+  }
+
+  if (gameOver) {
+    // Game Over screen
+    ctx.fillStyle = '#f00';
+    ctx.font = 'bold 32px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width/2, 100);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px monospace';
+    ctx.fillText(`SCORE: ${score}`, canvas.width/2, 160);
+
+    ctx.font = '16px monospace';
+    ctx.fillText('Press SPACE to Restart', canvas.width/2, 220);
+    return;
+  }
 
   // Draw snake with neon green
   ctx.fillStyle = '#0f0';
@@ -41,6 +75,12 @@ function draw() {
   // Draw food with bright red
   ctx.fillStyle = '#f00';
   ctx.fillRect(food.x * GRID_SIZE, food.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+
+  // Draw score
+  ctx.fillStyle = '#0f0';
+  ctx.font = '16px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`SCORE: ${score}`, 10, 25);
 }
 
 function update() {
@@ -52,6 +92,7 @@ function update() {
   // Check wall collision
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
     gameOver = true;
+    gameRunning = false;
     return;
   }
 
@@ -59,6 +100,7 @@ function update() {
   for (let segment of snake) {
     if (segment.x === head.x && segment.y === head.y) {
       gameOver = true;
+      gameRunning = false;
       return;
     }
   }
@@ -68,11 +110,15 @@ function update() {
   // Check if ate food
   if (head.x === food.x && head.y === food.y) {
     score += 10;
-    // Generate new food
-    food = {
-      x: Math.floor(Math.random() * GRID_WIDTH),
-      y: Math.floor(Math.random() * GRID_HEIGHT)
-    };
+    // Generate new food at random position (avoid snake body)
+    let newFood;
+    do {
+      newFood = {
+        x: Math.floor(Math.random() * GRID_WIDTH),
+        y: Math.floor(Math.random() * GRID_HEIGHT)
+      };
+    } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+    food = newFood;
   } else {
     snake.pop();
   }
@@ -84,20 +130,32 @@ function gameLoop(timestamp) {
 
   if (deltaTime > GAME_SPEED) {
     update();
-    draw();
     lastTime = timestamp;
   }
 
+  draw();
   requestAnimationFrame(gameLoop);
 }
 
 // Keyboard controls
 document.addEventListener('keydown', e => {
-  if (!gameRunning) {
-    gameRunning = true;
-    requestAnimationFrame(gameLoop);
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    if (!gameStarted || gameOver) {
+      // Reset game
+      snake = [{x: 10, y: 10}];
+      dx = 1;
+      dy = 0;
+      food = {x: 15, y: 15};
+      score = 0;
+      gameOver = false;
+      gameRunning = true;
+      gameStarted = true;
+      lastTime = 0;
+    }
     return;
   }
+
+  if (!gameRunning || gameOver) return;
 
   switch (e.key) {
     case 'ArrowUp':
@@ -115,7 +173,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Initial draw
+// Initial draw (shows title screen)
 draw();
 
-console.log("Basecade Commit #2 - Game loop and controls added. Press any arrow key to start!");
+console.log("Basecade Commit #3 - Start screen & Game Over added. Press SPACE to begin!");

@@ -21,12 +21,13 @@ let dy = 0;
 let food = {x: 15, y: 15};
 
 let score = 0;
+let highScore = localStorage.getItem('basecadeHighScore') || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
 
 let lastTime = 0;
-const GAME_SPEED = 100; // milliseconds per move
+let gameSpeed = 100; // milliseconds per move - will decrease as score increases
 
 function draw() {
   // Clear canvas with retro dark background
@@ -47,6 +48,10 @@ function draw() {
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
     ctx.fillText('← ↑ ↓ →  to move', canvas.width/2, 230);
+
+    // Show high score on title
+    ctx.fillStyle = '#ff0';
+    ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 270);
     return;
   }
 
@@ -61,8 +66,16 @@ function draw() {
     ctx.font = '20px monospace';
     ctx.fillText(`SCORE: ${score}`, canvas.width/2, 160);
 
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('basecadeHighScore', highScore);
+      ctx.fillStyle = '#0f0';
+      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 190);
+    }
+
+    ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Restart', canvas.width/2, 220);
+    ctx.fillText('Press SPACE to Restart', canvas.width/2, 230);
     return;
   }
 
@@ -104,21 +117,26 @@ function draw() {
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
       // Snake body - slightly darker green
-      const shade = Math.max(80, 255 - index * 8);
+      const shade = Math.max(60, 200 - index * 6);
       ctx.fillStyle = `rgb(0, ${shade}, 0)`;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
     }
   });
 
-  // Draw food with bright red
+  // Draw food with bright red + slight glow effect
   ctx.fillStyle = '#f00';
-  ctx.fillRect(food.x * GRID_SIZE, food.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+  ctx.fillRect(food.x * GRID_SIZE + 2, food.y * GRID_SIZE + 2, GRID_SIZE - 6, GRID_SIZE - 6);
 
   // Draw score
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(`SCORE: ${score}`, 10, 25);
+
+  // Draw high score
+  ctx.fillStyle = '#ff0';
+  ctx.textAlign = 'right';
+  ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
 }
 
 function update() {
@@ -148,6 +166,12 @@ function update() {
   // Check if ate food
   if (head.x === food.x && head.y === food.y) {
     score += 10;
+    
+    // Increase speed every 50 points (every 5 foods)
+    if (score % 50 === 0 && gameSpeed > 40) {
+      gameSpeed = Math.max(40, gameSpeed - 10);
+    }
+
     // Generate new food at random position (avoid snake body)
     let newFood;
     do {
@@ -166,7 +190,7 @@ function gameLoop(timestamp) {
   if (!lastTime) lastTime = timestamp;
   const deltaTime = timestamp - lastTime;
 
-  if (deltaTime > GAME_SPEED) {
+  if (deltaTime > gameSpeed) {
     update();
     lastTime = timestamp;
   }
@@ -185,6 +209,7 @@ document.addEventListener('keydown', e => {
       dy = 0;
       food = {x: 15, y: 15};
       score = 0;
+      gameSpeed = 100;
       gameOver = false;
       gameRunning = true;
       gameStarted = true;
@@ -213,5 +238,7 @@ document.addEventListener('keydown', e => {
 
 // Initial draw (shows title screen)
 draw();
+
+console.log("Basecade Commit #5 - Speed increases every 5 foods + High Score with localStorage. Enjoy getting faster!");
 
 console.log("Basecade Commit #4 - Improved snake visuals with head and gradient body. Press SPACE to play!");

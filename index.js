@@ -25,14 +25,34 @@ let highScore = localStorage.getItem('basecadeHighScore') || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
+let paused = false;
 
 let lastTime = 0;
-let gameSpeed = 100; // milliseconds per move - will decrease as score increases
+let gameSpeed = 100; // milliseconds per move
+
+function drawGrid() {
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= GRID_WIDTH; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * GRID_SIZE, 0);
+    ctx.lineTo(x * GRID_SIZE, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= GRID_HEIGHT; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * GRID_SIZE);
+    ctx.lineTo(canvas.width, y * GRID_SIZE);
+    ctx.stroke();
+  }
+}
 
 function draw() {
   // Clear canvas with retro dark background
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawGrid();
 
   if (!gameStarted) {
     // Title screen
@@ -48,10 +68,11 @@ function draw() {
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
     ctx.fillText('← ↑ ↓ →  to move', canvas.width/2, 230);
+    ctx.fillText('P to Pause', canvas.width/2, 260);
 
     // Show high score on title
     ctx.fillStyle = '#ff0';
-    ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 270);
+    ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
     return;
   }
 
@@ -79,10 +100,19 @@ function draw() {
     return;
   }
 
+  if (paused) {
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
+    ctx.font = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+    ctx.font = '16px monospace';
+    ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
+  }
+
   // Draw snake
   snake.forEach((segment, index) => {
     if (index === 0) {
-      // Snake head - brighter with direction eye
+      // Snake head
       ctx.fillStyle = '#0f0';
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       
@@ -92,38 +122,30 @@ function draw() {
       let eyeX1, eyeY1, eyeX2, eyeY2;
       
       if (dx === 1) { // right
-        eyeX1 = segment.x * GRID_SIZE + 12;
-        eyeY1 = segment.y * GRID_SIZE + 6;
-        eyeX2 = segment.x * GRID_SIZE + 12;
-        eyeY2 = segment.y * GRID_SIZE + 12;
+        eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6;
+        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12;
       } else if (dx === -1) { // left
-        eyeX1 = segment.x * GRID_SIZE + 4;
-        eyeY1 = segment.y * GRID_SIZE + 6;
-        eyeX2 = segment.x * GRID_SIZE + 4;
-        eyeY2 = segment.y * GRID_SIZE + 12;
+        eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6;
+        eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12;
       } else if (dy === -1) { // up
-        eyeX1 = segment.x * GRID_SIZE + 6;
-        eyeY1 = segment.y * GRID_SIZE + 4;
-        eyeX2 = segment.x * GRID_SIZE + 12;
-        eyeY2 = segment.y * GRID_SIZE + 4;
+        eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4;
+        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4;
       } else { // down
-        eyeX1 = segment.x * GRID_SIZE + 6;
-        eyeY1 = segment.y * GRID_SIZE + 14;
-        eyeX2 = segment.x * GRID_SIZE + 12;
-        eyeY2 = segment.y * GRID_SIZE + 14;
+        eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14;
+        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14;
       }
       
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
-      // Snake body - slightly darker green
+      // Snake body
       const shade = Math.max(60, 200 - index * 6);
       ctx.fillStyle = `rgb(0, ${shade}, 0)`;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
     }
   });
 
-  // Draw food with bright red + slight glow effect
+  // Draw food
   ctx.fillStyle = '#f00';
   ctx.fillRect(food.x * GRID_SIZE + 2, food.y * GRID_SIZE + 2, GRID_SIZE - 6, GRID_SIZE - 6);
 
@@ -140,19 +162,16 @@ function draw() {
 }
 
 function update() {
-  if (!gameRunning || gameOver) return;
+  if (!gameRunning || gameOver || paused) return;
 
-  // Move snake
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-  // Check wall collision
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
     gameOver = true;
     gameRunning = false;
     return;
   }
 
-  // Check self collision
   for (let segment of snake) {
     if (segment.x === head.x && segment.y === head.y) {
       gameOver = true;
@@ -163,16 +182,12 @@ function update() {
 
   snake.unshift(head);
 
-  // Check if ate food
   if (head.x === food.x && head.y === food.y) {
     score += 10;
-    
-    // Increase speed every 50 points (every 5 foods)
     if (score % 50 === 0 && gameSpeed > 40) {
       gameSpeed = Math.max(40, gameSpeed - 10);
     }
 
-    // Generate new food at random position (avoid snake body)
     let newFood;
     do {
       newFood = {
@@ -203,22 +218,26 @@ function gameLoop(timestamp) {
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
-      // Reset game
       snake = [{x: 10, y: 10}];
-      dx = 1;
-      dy = 0;
+      dx = 1; dy = 0;
       food = {x: 15, y: 15};
       score = 0;
       gameSpeed = 100;
       gameOver = false;
       gameRunning = true;
       gameStarted = true;
+      paused = false;
       lastTime = 0;
     }
     return;
   }
 
-  if (!gameRunning || gameOver) return;
+  if (e.key.toLowerCase() === 'p' && gameStarted && !gameOver) {
+    paused = !paused;
+    return;
+  }
+
+  if (!gameRunning || gameOver || paused) return;
 
   switch (e.key) {
     case 'ArrowUp':
@@ -236,9 +255,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Initial draw (shows title screen)
+// Initial draw
 draw();
 
-console.log("Basecade Commit #5 - Speed increases every 5 foods + High Score with localStorage. Enjoy getting faster!");
-
-console.log("Basecade Commit #4 - Improved snake visuals with head and gradient body. Press SPACE to play!");
+console.log("Basecade Commit #6 - Pause (P key) + Retro grid added. Game feels more polished!");

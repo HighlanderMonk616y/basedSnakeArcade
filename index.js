@@ -19,6 +19,7 @@ let dx = 1;
 let dy = 0;
 
 let food = {x: 15, y: 15};
+let foodPulse = 0;
 
 let score = 0;
 let highScore = localStorage.getItem('basecadeHighScore') || 0;
@@ -28,7 +29,16 @@ let gameStarted = false;
 let paused = false;
 
 let lastTime = 0;
-let gameSpeed = 100; // milliseconds per move
+let gameSpeed = 100;
+
+function drawNeonBorder() {
+  ctx.strokeStyle = '#0ff';
+  ctx.lineWidth = 6;
+  ctx.shadowColor = '#0ff';
+  ctx.shadowBlur = 15;
+  ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+  ctx.shadowBlur = 0;
+}
 
 function drawGrid() {
   ctx.strokeStyle = '#222';
@@ -48,14 +58,13 @@ function drawGrid() {
 }
 
 function draw() {
-  // Clear canvas with retro dark background
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawGrid();
+  drawNeonBorder();
 
   if (!gameStarted) {
-    // Title screen
     ctx.fillStyle = '#0f0';
     ctx.font = 'bold 28px monospace';
     ctx.textAlign = 'center';
@@ -70,14 +79,12 @@ function draw() {
     ctx.fillText('← ↑ ↓ →  to move', canvas.width/2, 230);
     ctx.fillText('P to Pause', canvas.width/2, 260);
 
-    // Show high score on title
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
     return;
   }
 
   if (gameOver) {
-    // Game Over screen
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 32px monospace';
     ctx.textAlign = 'center';
@@ -112,25 +119,23 @@ function draw() {
   // Draw snake
   snake.forEach((segment, index) => {
     if (index === 0) {
-      // Snake head
       ctx.fillStyle = '#0f0';
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       
-      // Eye dot
       ctx.fillStyle = '#000';
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
       
-      if (dx === 1) { // right
+      if (dx === 1) {
         eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6;
         eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12;
-      } else if (dx === -1) { // left
+      } else if (dx === -1) {
         eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6;
         eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12;
-      } else if (dy === -1) { // up
+      } else if (dy === -1) {
         eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4;
         eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4;
-      } else { // down
+      } else {
         eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14;
         eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14;
       }
@@ -138,24 +143,30 @@ function draw() {
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
-      // Snake body
       const shade = Math.max(60, 200 - index * 6);
       ctx.fillStyle = `rgb(0, ${shade}, 0)`;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
     }
   });
 
-  // Draw food
+  // Draw pulsing food
+  foodPulse = (foodPulse + 0.15) % (Math.PI * 2);
+  const pulseSize = Math.sin(foodPulse) * 2 + (GRID_SIZE - 8);
+  
   ctx.fillStyle = '#f00';
-  ctx.fillRect(food.x * GRID_SIZE + 2, food.y * GRID_SIZE + 2, GRID_SIZE - 6, GRID_SIZE - 6);
+  ctx.fillRect(
+    food.x * GRID_SIZE + (GRID_SIZE - pulseSize)/2,
+    food.y * GRID_SIZE + (GRID_SIZE - pulseSize)/2,
+    pulseSize,
+    pulseSize
+  );
 
-  // Draw score
+  // Score
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(`SCORE: ${score}`, 10, 25);
 
-  // Draw high score
   ctx.fillStyle = '#ff0';
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
@@ -258,4 +269,4 @@ document.addEventListener('keydown', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #6 - Pause (P key) + Retro grid added. Game feels more polished!");
+console.log("Basecade Commit #7 - Neon border + pulsing food added. Looking very arcade now!");

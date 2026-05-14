@@ -11,6 +11,27 @@ const GRID_HEIGHT = 20;
 canvas.width = GRID_WIDTH * GRID_SIZE;
 canvas.height = GRID_HEIGHT * GRID_SIZE;
 
+// Simple Web Audio API for retro sounds
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(freq, duration, type = 'square', volume = 0.3) {
+  if (!audioContext) return;
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+  gainNode.gain.value = volume;
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.start();
+  setTimeout(() => {
+    oscillator.stop();
+  }, duration);
+}
+
 let snake = [
   {x: 10, y: 10}
 ];
@@ -180,6 +201,7 @@ function update() {
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
     gameOver = true;
     gameRunning = false;
+    playSound(200, 400, 'sawtooth', 0.4); // Game over sound
     return;
   }
 
@@ -187,6 +209,7 @@ function update() {
     if (segment.x === head.x && segment.y === head.y) {
       gameOver = true;
       gameRunning = false;
+      playSound(200, 400, 'sawtooth', 0.4);
       return;
     }
   }
@@ -195,6 +218,9 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 10;
+    playSound(800, 80, 'sine', 0.3);   // Eat sound
+    playSound(1200, 60, 'sine', 0.2);
+    
     if (score % 50 === 0 && gameSpeed > 40) {
       gameSpeed = Math.max(40, gameSpeed - 10);
     }
@@ -209,6 +235,7 @@ function update() {
     food = newFood;
   } else {
     snake.pop();
+    playSound(400, 20, 'square', 0.1); // Soft tick sound
   }
 }
 
@@ -239,12 +266,15 @@ document.addEventListener('keydown', e => {
       gameStarted = true;
       paused = false;
       lastTime = 0;
+      playSound(600, 100, 'sine');
+      playSound(900, 80, 'sine');
     }
     return;
   }
 
   if (e.key.toLowerCase() === 'p' && gameStarted && !gameOver) {
     paused = !paused;
+    if (!paused) playSound(700, 50);
     return;
   }
 
@@ -269,4 +299,4 @@ document.addEventListener('keydown', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #7 - Neon border + pulsing food added. Looking very arcade now!");
+console.log("Basecade Commit #8 - Retro sound effects added! (Eat, move, game over sounds)");

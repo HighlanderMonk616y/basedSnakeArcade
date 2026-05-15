@@ -52,6 +52,10 @@ let paused = false;
 let lastTime = 0;
 let gameSpeed = 100;
 
+// Touch swipe support
+let touchStartX = 0;
+let touchStartY = 0;
+
 function drawNeonBorder() {
   ctx.strokeStyle = '#0ff';
   ctx.lineWidth = 6;
@@ -97,7 +101,7 @@ function draw() {
 
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
-    ctx.fillText('← ↑ ↓ →  to move', canvas.width/2, 230);
+    ctx.fillText('← ↑ ↓ →  or Swipe', canvas.width/2, 230);
     ctx.fillText('P to Pause', canvas.width/2, 260);
 
     ctx.fillStyle = '#ff0';
@@ -201,7 +205,7 @@ function update() {
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
     gameOver = true;
     gameRunning = false;
-    playSound(200, 400, 'sawtooth', 0.4); // Game over sound
+    playSound(200, 400, 'sawtooth', 0.4);
     return;
   }
 
@@ -218,7 +222,7 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     score += 10;
-    playSound(800, 80, 'sine', 0.3);   // Eat sound
+    playSound(800, 80, 'sine', 0.3);
     playSound(1200, 60, 'sine', 0.2);
     
     if (score % 50 === 0 && gameSpeed > 40) {
@@ -235,7 +239,7 @@ function update() {
     food = newFood;
   } else {
     snake.pop();
-    playSound(400, 20, 'square', 0.1); // Soft tick sound
+    playSound(400, 20, 'square', 0.1);
   }
 }
 
@@ -296,7 +300,42 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// Touch swipe controls
+canvas.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, false);
+
+canvas.addEventListener('touchend', e => {
+  if (!gameRunning || gameOver || paused) return;
+
+  const touchEndX = e.changedTouches[0].screenX;
+  const touchEndY = e.changedTouches[0].screenY;
+
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+
+  // Only register significant swipes
+  if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (deltaX > 0 && dx !== -1) {
+        dx = 1; dy = 0;
+      } else if (deltaX < 0 && dx !== 1) {
+        dx = -1; dy = 0;
+      }
+    } else {
+      // Vertical swipe
+      if (deltaY > 0 && dy !== -1) {
+        dx = 0; dy = 1;
+      } else if (deltaY < 0 && dy !== 1) {
+        dx = 0; dy = -1;
+      }
+    }
+  }
+}, false);
+
 // Initial draw
 draw();
 
-console.log("Basecade Commit #8 - Retro sound effects added! (Eat, move, game over sounds)");
+console.log("Basecade Commit #9 - Mobile swipe controls added! Now fully playable on phones.");

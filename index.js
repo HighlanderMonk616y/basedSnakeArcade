@@ -52,9 +52,25 @@ let paused = false;
 let lastTime = 0;
 let gameSpeed = 100;
 
+// Particles
+let particles = [];
+
 // Touch swipe support
 let touchStartX = 0;
 let touchStartY = 0;
+
+function createEatParticles(x, y) {
+  for (let i = 0; i < 12; i++) {
+    particles.push({
+      x: x * GRID_SIZE + GRID_SIZE / 2,
+      y: y * GRID_SIZE + GRID_SIZE / 2,
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.5) * 6,
+      life: 25 + Math.random() * 15,
+      color: '#ff0'
+    });
+  }
+}
 
 function drawNeonBorder() {
   ctx.strokeStyle = '#0ff';
@@ -118,17 +134,18 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '20px monospace';
     ctx.fillText(`SCORE: ${score}`, canvas.width/2, 160);
+    ctx.fillText(`LENGTH: ${snake.length}`, canvas.width/2, 190);
 
     if (score > highScore) {
       highScore = score;
       localStorage.setItem('basecadeHighScore', highScore);
       ctx.fillStyle = '#0f0';
-      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 190);
+      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 220);
     }
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Restart', canvas.width/2, 230);
+    ctx.fillText('Press SPACE to Restart', canvas.width/2, 260);
     return;
   }
 
@@ -186,11 +203,20 @@ function draw() {
     pulseSize
   );
 
-  // Score
+  // Draw particles
+  particles.forEach((p, i) => {
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 40;
+    ctx.fillRect(p.x, p.y, 4, 4);
+  });
+  ctx.globalAlpha = 1;
+
+  // Score & Length
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(`SCORE: ${score}`, 10, 25);
+  ctx.fillText(`LEN: ${snake.length}`, 10, 48);
 
   ctx.fillStyle = '#ff0';
   ctx.textAlign = 'right';
@@ -224,6 +250,7 @@ function update() {
     score += 10;
     playSound(800, 80, 'sine', 0.3);
     playSound(1200, 60, 'sine', 0.2);
+    createEatParticles(food.x, food.y);
     
     if (score % 50 === 0 && gameSpeed > 40) {
       gameSpeed = Math.max(40, gameSpeed - 10);
@@ -241,6 +268,17 @@ function update() {
     snake.pop();
     playSound(400, 20, 'square', 0.1);
   }
+
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    p.vx *= 0.95;
+    p.vy *= 0.95;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
 }
 
 function gameLoop(timestamp) {
@@ -256,7 +294,7 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Keyboard controls
+// Keyboard controls (same as before)
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
@@ -270,6 +308,7 @@ document.addEventListener('keydown', e => {
       gameStarted = true;
       paused = false;
       lastTime = 0;
+      particles = [];
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -300,7 +339,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Touch swipe controls
+// Touch swipe controls (same)
 canvas.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
   touchStartY = e.changedTouches[0].screenY;
@@ -315,22 +354,13 @@ canvas.addEventListener('touchend', e => {
   const deltaX = touchEndX - touchStartX;
   const deltaY = touchEndY - touchStartY;
 
-  // Only register significant swipes
   if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Horizontal swipe
-      if (deltaX > 0 && dx !== -1) {
-        dx = 1; dy = 0;
-      } else if (deltaX < 0 && dx !== 1) {
-        dx = -1; dy = 0;
-      }
+      if (deltaX > 0 && dx !== -1) { dx = 1; dy = 0; }
+      else if (deltaX < 0 && dx !== 1) { dx = -1; dy = 0; }
     } else {
-      // Vertical swipe
-      if (deltaY > 0 && dy !== -1) {
-        dx = 0; dy = 1;
-      } else if (deltaY < 0 && dy !== 1) {
-        dx = 0; dy = -1;
-      }
+      if (deltaY > 0 && dy !== -1) { dx = 0; dy = 1; }
+      else if (deltaY < 0 && dy !== 1) { dx = 0; dy = -1; }
     }
   }
 }, false);
@@ -338,4 +368,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #9 - Mobile swipe controls added! Now fully playable on phones.");
+console.log("Basecade Commit #10 - Eat particles + Length display added. Much more satisfying!");

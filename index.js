@@ -54,6 +54,7 @@ let gameSpeed = 100;
 
 // Particles
 let particles = [];
+let scorePopups = [];
 
 // Touch swipe support
 let touchStartX = 0;
@@ -70,6 +71,16 @@ function createEatParticles(x, y) {
       color: '#ff0'
     });
   }
+}
+
+function createScorePopup(x, y) {
+  scorePopups.push({
+    x: x * GRID_SIZE + GRID_SIZE / 2,
+    y: y * GRID_SIZE,
+    vy: -1.2,
+    life: 45,
+    score: 10
+  });
 }
 
 function drawNeonBorder() {
@@ -209,6 +220,15 @@ function draw() {
     ctx.globalAlpha = p.life / 40;
     ctx.fillRect(p.x, p.y, 4, 4);
   });
+
+  // Draw score popups
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  scorePopups.forEach(p => {
+    ctx.globalAlpha = p.life / 45;
+    ctx.fillStyle = '#ff0';
+    ctx.fillText(`+${p.score}`, p.x, p.y);
+  });
   ctx.globalAlpha = 1;
 
   // Score & Length
@@ -251,6 +271,7 @@ function update() {
     playSound(800, 80, 'sine', 0.3);
     playSound(1200, 60, 'sine', 0.2);
     createEatParticles(food.x, food.y);
+    createScorePopup(food.x, food.y);
     
     if (score % 50 === 0 && gameSpeed > 40) {
       gameSpeed = Math.max(40, gameSpeed - 10);
@@ -279,6 +300,14 @@ function update() {
     p.vy *= 0.95;
     if (p.life <= 0) particles.splice(i, 1);
   }
+
+  // Update score popups
+  for (let i = scorePopups.length - 1; i >= 0; i--) {
+    const p = scorePopups[i];
+    p.y += p.vy;
+    p.life--;
+    if (p.life <= 0) scorePopups.splice(i, 1);
+  }
 }
 
 function gameLoop(timestamp) {
@@ -294,7 +323,7 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Keyboard controls (same as before)
+// Keyboard controls
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
@@ -309,6 +338,7 @@ document.addEventListener('keydown', e => {
       paused = false;
       lastTime = 0;
       particles = [];
+      scorePopups = [];
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -339,7 +369,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Touch swipe controls (same)
+// Touch swipe controls
 canvas.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
   touchStartY = e.changedTouches[0].screenY;
@@ -368,4 +398,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #10 - Eat particles + Length display added. Much more satisfying!");
+console.log("Basecade Commit #11 - Floating +10 score popups added. Even more satisfying!");

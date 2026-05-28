@@ -43,6 +43,7 @@ let food = {x: 15, y: 15};
 let foodPulse = 0;
 
 let score = 0;
+let level = 1;
 let highScore = localStorage.getItem('basecadeHighScore') || 0;
 let gameOver = false;
 let gameRunning = false;
@@ -81,6 +82,10 @@ function createScorePopup(x, y) {
     life: 45,
     score: 10
   });
+}
+
+function getLevelFromScore() {
+  return Math.floor(score / 100) + 1;
 }
 
 function drawNeonBorder() {
@@ -145,18 +150,19 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '20px monospace';
     ctx.fillText(`SCORE: ${score}`, canvas.width/2, 160);
-    ctx.fillText(`LENGTH: ${snake.length}`, canvas.width/2, 190);
+    ctx.fillText(`LEVEL: ${level}`, canvas.width/2, 190);
+    ctx.fillText(`LENGTH: ${snake.length}`, canvas.width/2, 220);
 
     if (score > highScore) {
       highScore = score;
       localStorage.setItem('basecadeHighScore', highScore);
       ctx.fillStyle = '#0f0';
-      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 220);
+      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 255);
     }
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Restart', canvas.width/2, 260);
+    ctx.fillText('Press SPACE to Restart', canvas.width/2, 290);
     return;
   }
 
@@ -215,7 +221,7 @@ function draw() {
   );
 
   // Draw particles
-  particles.forEach((p, i) => {
+  particles.forEach((p) => {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.life / 40;
     ctx.fillRect(p.x, p.y, 4, 4);
@@ -231,7 +237,7 @@ function draw() {
   });
   ctx.globalAlpha = 1;
 
-  // Score & Length
+  // HUD
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
@@ -241,6 +247,7 @@ function draw() {
   ctx.fillStyle = '#ff0';
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
+  ctx.fillText(`LEVEL: ${level}`, canvas.width - 10, 48);
 }
 
 function update() {
@@ -273,8 +280,15 @@ function update() {
     createEatParticles(food.x, food.y);
     createScorePopup(food.x, food.y);
     
-    if (score % 50 === 0 && gameSpeed > 40) {
-      gameSpeed = Math.max(40, gameSpeed - 10);
+    const newLevel = getLevelFromScore();
+    if (newLevel > level) {
+      level = newLevel;
+      playSound(1500, 100, 'sine', 0.4);
+      playSound(2000, 150, 'sine', 0.3);
+    }
+
+    if (score % 50 === 0 && gameSpeed > 35) {
+      gameSpeed = Math.max(35, gameSpeed - 8);
     }
 
     let newFood;
@@ -331,6 +345,7 @@ document.addEventListener('keydown', e => {
       dx = 1; dy = 0;
       food = {x: 15, y: 15};
       score = 0;
+      level = 1;
       gameSpeed = 100;
       gameOver = false;
       gameRunning = true;
@@ -398,4 +413,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #11 - Floating +10 score popups added. Even more satisfying!");
+console.log("Basecade Commit #12 - Level system added! Every 100 points = new level + faster gameplay.");

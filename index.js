@@ -52,6 +52,7 @@ let paused = false;
 
 let lastTime = 0;
 let gameSpeed = 100;
+let shakeTime = 0;
 
 // Particles
 let particles = [];
@@ -88,12 +89,25 @@ function getLevelFromScore() {
   return Math.floor(score / 100) + 1;
 }
 
+function getLevelColor() {
+  const colors = ['#0ff', '#f0f', '#ff0', '#0f0', '#f80'];
+  return colors[(level - 1) % colors.length];
+}
+
 function drawNeonBorder() {
-  ctx.strokeStyle = '#0ff';
-  ctx.lineWidth = 6;
-  ctx.shadowColor = '#0ff';
-  ctx.shadowBlur = 15;
-  ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+  const color = getLevelColor();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 8;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 20;
+  
+  let offset = 0;
+  if (shakeTime > 0) {
+    offset = (Math.random() - 0.5) * 4;
+    shakeTime--;
+  }
+  
+  ctx.strokeRect(3 + offset, 3 + offset, canvas.width - 6, canvas.height - 6);
   ctx.shadowBlur = 0;
 }
 
@@ -283,12 +297,10 @@ function update() {
     const newLevel = getLevelFromScore();
     if (newLevel > level) {
       level = newLevel;
-      playSound(1500, 100, 'sine', 0.4);
-      playSound(2000, 150, 'sine', 0.3);
-    }
-
-    if (score % 50 === 0 && gameSpeed > 35) {
-      gameSpeed = Math.max(35, gameSpeed - 8);
+      gameSpeed = Math.max(30, gameSpeed - 7);
+      shakeTime = 8;
+      playSound(1500, 100, 'sine', 0.5);
+      playSound(2200, 200, 'sine', 0.4);
     }
 
     let newFood;
@@ -354,6 +366,7 @@ document.addEventListener('keydown', e => {
       lastTime = 0;
       particles = [];
       scorePopups = [];
+      shakeTime = 0;
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -413,4 +426,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #12 - Level system added! Every 100 points = new level + faster gameplay.");
+console.log("Basecade Commit #13 - Level-based neon border color + screen shake on level up!");

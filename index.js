@@ -53,6 +53,7 @@ let paused = false;
 let lastTime = 0;
 let gameSpeed = 100;
 let shakeTime = 0;
+let gameOverTime = 0;
 
 // Particles
 let particles = [];
@@ -156,6 +157,23 @@ function draw() {
   }
 
   if (gameOver) {
+    const alpha = Math.max(0.3, 1 - (Date.now() - gameOverTime) / 2000);
+    
+    // Draw fading snake
+    ctx.globalAlpha = alpha;
+    snake.forEach((segment, index) => {
+      if (index === 0) {
+        ctx.fillStyle = '#0f0';
+        ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      } else {
+        const shade = Math.max(40, 180 - index * 6);
+        ctx.fillStyle = `rgb(0, ${shade}, 0)`;
+        ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      }
+    });
+    ctx.globalAlpha = 1;
+
+    // Game Over text
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 32px monospace';
     ctx.textAlign = 'center';
@@ -163,20 +181,20 @@ function draw() {
 
     ctx.fillStyle = '#fff';
     ctx.font = '20px monospace';
-    ctx.fillText(`SCORE: ${score}`, canvas.width/2, 160);
-    ctx.fillText(`LEVEL: ${level}`, canvas.width/2, 190);
-    ctx.fillText(`LENGTH: ${snake.length}`, canvas.width/2, 220);
+    ctx.fillText(`FINAL SCORE: ${score}`, canvas.width/2, 160);
+    ctx.fillText(`LEVEL REACHED: ${level}`, canvas.width/2, 190);
+    ctx.fillText(`FINAL LENGTH: ${snake.length}`, canvas.width/2, 220);
 
     if (score > highScore) {
       highScore = score;
       localStorage.setItem('basecadeHighScore', highScore);
       ctx.fillStyle = '#0f0';
-      ctx.fillText('NEW HIGH SCORE!', canvas.width/2, 255);
+      ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 255);
     }
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Restart', canvas.width/2, 290);
+    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 300);
     return;
   }
 
@@ -272,6 +290,7 @@ function update() {
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
     gameOver = true;
     gameRunning = false;
+    gameOverTime = Date.now();
     playSound(200, 400, 'sawtooth', 0.4);
     return;
   }
@@ -280,6 +299,7 @@ function update() {
     if (segment.x === head.x && segment.y === head.y) {
       gameOver = true;
       gameRunning = false;
+      gameOverTime = Date.now();
       playSound(200, 400, 'sawtooth', 0.4);
       return;
     }
@@ -367,6 +387,7 @@ document.addEventListener('keydown', e => {
       particles = [];
       scorePopups = [];
       shakeTime = 0;
+      gameOverTime = 0;
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -426,4 +447,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #13 - Level-based neon border color + screen shake on level up!");
+console.log("Basecade Commit #14 - Beautiful game over fade animation + detailed final stats!");

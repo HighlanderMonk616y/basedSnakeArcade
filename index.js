@@ -129,8 +129,19 @@ function drawGrid() {
   }
 }
 
+function drawCRTScanlines() {
+  ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
+  ctx.lineWidth = 2;
+  for (let y = 0; y < canvas.height; y += 4) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+}
+
 function draw() {
-  ctx.fillStyle = '#111';
+  ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawGrid();
@@ -159,7 +170,6 @@ function draw() {
   if (gameOver) {
     const alpha = Math.max(0.3, 1 - (Date.now() - gameOverTime) / 2000);
     
-    // Draw fading snake
     ctx.globalAlpha = alpha;
     snake.forEach((segment, index) => {
       if (index === 0) {
@@ -173,7 +183,6 @@ function draw() {
     });
     ctx.globalAlpha = 1;
 
-    // Game Over text
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 32px monospace';
     ctx.textAlign = 'center';
@@ -195,6 +204,7 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Try Again', canvas.width/2, 300);
+    drawCRTScanlines();
     return;
   }
 
@@ -280,6 +290,8 @@ function draw() {
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
   ctx.fillText(`LEVEL: ${level}`, canvas.width - 10, 48);
+
+  drawCRTScanlines();
 }
 
 function update() {
@@ -447,4 +459,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #14 - Beautiful game over fade animation + detailed final stats!");
+console.log("Basecade Commit #15 - Retro CRT scanlines added. True arcade cabinet vibes!");

@@ -44,6 +44,9 @@ let foodPulse = 0;
 
 let score = 0;
 let level = 1;
+let combo = 0;
+let comboTimer = 0;
+let multiplier = 1;
 let highScore = localStorage.getItem('basecadeHighScore') || 0;
 let gameOver = false;
 let gameRunning = false;
@@ -64,25 +67,25 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 function createEatParticles(x, y) {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 16; i++) {
     particles.push({
       x: x * GRID_SIZE + GRID_SIZE / 2,
       y: y * GRID_SIZE + GRID_SIZE / 2,
-      vx: (Math.random() - 0.5) * 6,
-      vy: (Math.random() - 0.5) * 6,
-      life: 25 + Math.random() * 15,
-      color: '#ff0'
+      vx: (Math.random() - 0.5) * 7,
+      vy: (Math.random() - 0.5) * 7,
+      life: 30 + Math.random() * 20,
+      color: combo > 3 ? '#ff0' : '#0ff'
     });
   }
 }
 
-function createScorePopup(x, y) {
+function createScorePopup(x, y, points) {
   scorePopups.push({
     x: x * GRID_SIZE + GRID_SIZE / 2,
-    y: y * GRID_SIZE,
-    vy: -1.2,
-    life: 45,
-    score: 10
+    y: y * GRID_SIZE - 10,
+    vy: -1.5,
+    life: 50,
+    score: points
   });
 }
 
@@ -191,19 +194,20 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '20px monospace';
     ctx.fillText(`FINAL SCORE: ${score}`, canvas.width/2, 160);
-    ctx.fillText(`LEVEL REACHED: ${level}`, canvas.width/2, 190);
-    ctx.fillText(`FINAL LENGTH: ${snake.length}`, canvas.width/2, 220);
+    ctx.fillText(`MAX COMBO: ${combo}`, canvas.width/2, 190);
+    ctx.fillText(`LEVEL REACHED: ${level}`, canvas.width/2, 220);
+    ctx.fillText(`FINAL LENGTH: ${snake.length}`, canvas.width/2, 250);
 
     if (score > highScore) {
       highScore = score;
       localStorage.setItem('basecadeHighScore', highScore);
       ctx.fillStyle = '#0f0';
-      ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 255);
+      ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 285);
     }
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 300);
+    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 320);
     drawCRTScanlines();
     return;
   }
@@ -227,19 +231,10 @@ function draw() {
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
       
-      if (dx === 1) {
-        eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6;
-        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12;
-      } else if (dx === -1) {
-        eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6;
-        eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12;
-      } else if (dy === -1) {
-        eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4;
-        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4;
-      } else {
-        eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14;
-        eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14;
-      }
+      if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12; }
+      else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12; }
+      else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4; }
+      else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14; }
       
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
@@ -251,8 +246,8 @@ function draw() {
   });
 
   // Draw pulsing food
-  foodPulse = (foodPulse + 0.15) % (Math.PI * 2);
-  const pulseSize = Math.sin(foodPulse) * 2 + (GRID_SIZE - 8);
+  foodPulse = (foodPulse + 0.18) % (Math.PI * 2);
+  const pulseSize = Math.sin(foodPulse) * 3 + (GRID_SIZE - 7);
   
   ctx.fillStyle = '#f00';
   ctx.fillRect(
@@ -265,16 +260,16 @@ function draw() {
   // Draw particles
   particles.forEach((p) => {
     ctx.fillStyle = p.color;
-    ctx.globalAlpha = p.life / 40;
-    ctx.fillRect(p.x, p.y, 4, 4);
+    ctx.globalAlpha = p.life / 45;
+    ctx.fillRect(p.x, p.y, 5, 5);
   });
 
   // Draw score popups
-  ctx.font = 'bold 14px monospace';
+  ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
   scorePopups.forEach(p => {
-    ctx.globalAlpha = p.life / 45;
-    ctx.fillStyle = '#ff0';
+    ctx.globalAlpha = p.life / 50;
+    ctx.fillStyle = p.score > 10 ? '#ff0' : '#fff';
     ctx.fillText(`+${p.score}`, p.x, p.y);
   });
   ctx.globalAlpha = 1;
@@ -290,12 +285,20 @@ function draw() {
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
   ctx.fillText(`LEVEL: ${level}`, canvas.width - 10, 48);
+  ctx.fillText(`COMBO: x${multiplier}`, canvas.width - 10, 71);
 
   drawCRTScanlines();
 }
 
 function update() {
   if (!gameRunning || gameOver || paused) return;
+
+  // Combo timer
+  if (comboTimer > 0) comboTimer--;
+  else if (combo > 0) {
+    combo = 0;
+    multiplier = 1;
+  }
 
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
@@ -320,11 +323,15 @@ function update() {
   snake.unshift(head);
 
   if (head.x === food.x && head.y === food.y) {
-    score += 10;
-    playSound(800, 80, 'sine', 0.3);
-    playSound(1200, 60, 'sine', 0.2);
+    combo++;
+    multiplier = Math.min(5, Math.floor(combo / 3) + 1);
+    const points = 10 * multiplier;
+    score += points;
+
+    playSound(800 + combo * 50, 80, 'sine', 0.4);
+    playSound(1200 + combo * 80, 60, 'sine', 0.3);
     createEatParticles(food.x, food.y);
-    createScorePopup(food.x, food.y);
+    createScorePopup(food.x, food.y, points);
     
     const newLevel = getLevelFromScore();
     if (newLevel > level) {
@@ -343,6 +350,8 @@ function update() {
       };
     } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
     food = newFood;
+
+    comboTimer = 45; // ~3-4 seconds at normal speed
   } else {
     snake.pop();
     playSound(400, 20, 'square', 0.1);
@@ -354,8 +363,8 @@ function update() {
     p.x += p.vx;
     p.y += p.vy;
     p.life--;
-    p.vx *= 0.95;
-    p.vy *= 0.95;
+    p.vx *= 0.94;
+    p.vy *= 0.94;
     if (p.life <= 0) particles.splice(i, 1);
   }
 
@@ -390,6 +399,8 @@ document.addEventListener('keydown', e => {
       food = {x: 15, y: 15};
       score = 0;
       level = 1;
+      combo = 0;
+      multiplier = 1;
       gameSpeed = 100;
       gameOver = false;
       gameRunning = true;
@@ -459,4 +470,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #15 - Retro CRT scanlines added. True arcade cabinet vibes!");
+console.log("Basecade Commit #16 - Combo system & multiplier added! Chain those apples for big points!");

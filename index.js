@@ -48,6 +48,7 @@ let combo = 0;
 let comboTimer = 0;
 let multiplier = 1;
 let highScore = localStorage.getItem('basecadeHighScore') || 0;
+let bestCombo = localStorage.getItem('basecadeBestCombo') || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
@@ -74,7 +75,7 @@ function createEatParticles(x, y) {
       vx: (Math.random() - 0.5) * 7,
       vy: (Math.random() - 0.5) * 7,
       life: 30 + Math.random() * 20,
-      color: combo > 3 ? '#ff0' : '#0ff'
+      color: combo > 4 ? '#ff0' : '#0ff'
     });
   }
 }
@@ -167,6 +168,7 @@ function draw() {
 
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
+    ctx.fillText(`BEST COMBO: ${bestCombo}`, canvas.width/2, 325);
     return;
   }
 
@@ -205,9 +207,16 @@ function draw() {
       ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 285);
     }
 
+    if (combo > bestCombo) {
+      bestCombo = combo;
+      localStorage.setItem('basecadeBestCombo', bestCombo);
+      ctx.fillStyle = '#ff0';
+      ctx.fillText('🔥 NEW BEST COMBO!', canvas.width/2, 315);
+    }
+
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 320);
+    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 350);
     drawCRTScanlines();
     return;
   }
@@ -293,7 +302,6 @@ function draw() {
 function update() {
   if (!gameRunning || gameOver || paused) return;
 
-  // Combo timer
   if (comboTimer > 0) comboTimer--;
   else if (combo > 0) {
     combo = 0;
@@ -324,12 +332,12 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     combo++;
-    multiplier = Math.min(5, Math.floor(combo / 3) + 1);
+    multiplier = Math.min(6, Math.floor(combo / 3) + 1);
     const points = 10 * multiplier;
     score += points;
 
-    playSound(800 + combo * 50, 80, 'sine', 0.4);
-    playSound(1200 + combo * 80, 60, 'sine', 0.3);
+    playSound(800 + combo * 60, 80, 'sine', 0.4);
+    playSound(1250 + combo * 90, 60, 'sine', 0.3);
     createEatParticles(food.x, food.y);
     createScorePopup(food.x, food.y, points);
     
@@ -351,7 +359,7 @@ function update() {
     } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
     food = newFood;
 
-    comboTimer = 45; // ~3-4 seconds at normal speed
+    comboTimer = 50;
   } else {
     snake.pop();
     playSound(400, 20, 'square', 0.1);
@@ -470,4 +478,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #16 - Combo system & multiplier added! Chain those apples for big points!");
+console.log("Basecade Commit #17 - Best Combo tracking with localStorage persistence added!");

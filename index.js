@@ -230,12 +230,17 @@ function draw() {
     ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
   }
 
-  // Draw snake
+  // Draw snake with glow trail
   snake.forEach((segment, index) => {
     if (index === 0) {
+      // Head
+      ctx.shadowColor = '#0f0';
+      ctx.shadowBlur = 12;
       ctx.fillStyle = '#0f0';
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      ctx.shadowBlur = 0;
       
+      // Eyes
       ctx.fillStyle = '#000';
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
@@ -248,9 +253,13 @@ function draw() {
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
-      const shade = Math.max(60, 200 - index * 6);
-      ctx.fillStyle = `rgb(0, ${shade}, 0)`;
+      // Body with glow
+      const intensity = Math.max(40, 220 - index * 7);
+      ctx.shadowColor = `rgb(0, ${intensity}, 0)`;
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = `rgb(0, ${intensity}, 0)`;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      ctx.shadowBlur = 0;
     }
   });
 
@@ -258,6 +267,8 @@ function draw() {
   foodPulse = (foodPulse + 0.18) % (Math.PI * 2);
   const pulseSize = Math.sin(foodPulse) * 3 + (GRID_SIZE - 7);
   
+  ctx.shadowColor = '#f00';
+  ctx.shadowBlur = 15;
   ctx.fillStyle = '#f00';
   ctx.fillRect(
     food.x * GRID_SIZE + (GRID_SIZE - pulseSize)/2,
@@ -265,6 +276,7 @@ function draw() {
     pulseSize,
     pulseSize
   );
+  ctx.shadowBlur = 0;
 
   // Draw particles
   particles.forEach((p) => {
@@ -478,4 +490,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #17 - Best Combo tracking with localStorage persistence added!");
+console.log("Basecade Commit #18 - Beautiful glowing snake trail effect added!");

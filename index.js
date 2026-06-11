@@ -58,6 +58,7 @@ let lastTime = 0;
 let gameSpeed = 100;
 let shakeTime = 0;
 let gameOverTime = 0;
+let milestoneFlash = 0;
 
 // Particles
 let particles = [];
@@ -90,6 +91,14 @@ function createScorePopup(x, y, points) {
   });
 }
 
+function triggerMilestone() {
+  milestoneFlash = 25;
+  shakeTime = 12;
+  playSound(1200, 120, 'sine', 0.6);
+  playSound(1800, 200, 'sine', 0.5);
+  playSound(2400, 300, 'sine', 0.4);
+}
+
 function getLevelFromScore() {
   return Math.floor(score / 100) + 1;
 }
@@ -108,7 +117,7 @@ function drawNeonBorder() {
   
   let offset = 0;
   if (shakeTime > 0) {
-    offset = (Math.random() - 0.5) * 4;
+    offset = (Math.random() - 0.5) * 5;
     shakeTime--;
   }
   
@@ -233,14 +242,12 @@ function draw() {
   // Draw snake with glow trail
   snake.forEach((segment, index) => {
     if (index === 0) {
-      // Head
       ctx.shadowColor = '#0f0';
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#0f0';
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
       
-      // Eyes
       ctx.fillStyle = '#000';
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
@@ -253,7 +260,6 @@ function draw() {
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
-      // Body with glow
       const intensity = Math.max(40, 220 - index * 7);
       ctx.shadowColor = `rgb(0, ${intensity}, 0)`;
       ctx.shadowBlur = 8;
@@ -294,6 +300,15 @@ function draw() {
     ctx.fillText(`+${p.score}`, p.x, p.y);
   });
   ctx.globalAlpha = 1;
+
+  // Milestone flash
+  if (milestoneFlash > 0) {
+    ctx.fillStyle = `rgba(255, 255, 0, ${milestoneFlash / 30})`;
+    ctx.font = 'bold 36px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('MILESTONE!', canvas.width/2, 90);
+    milestoneFlash--;
+  }
 
   // HUD
   ctx.fillStyle = '#0f0';
@@ -360,6 +375,11 @@ function update() {
       shakeTime = 8;
       playSound(1500, 100, 'sine', 0.5);
       playSound(2200, 200, 'sine', 0.4);
+    }
+
+    // Milestone celebration
+    if (score % 500 === 0 && score > 0) {
+      triggerMilestone();
     }
 
     let newFood;
@@ -431,6 +451,7 @@ document.addEventListener('keydown', e => {
       scorePopups = [];
       shakeTime = 0;
       gameOverTime = 0;
+      milestoneFlash = 0;
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -490,4 +511,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #18 - Beautiful glowing snake trail effect added!");
+console.log("Basecade Commit #19 - Milestone celebrations (every 500 points) with flash + extra shake added!");

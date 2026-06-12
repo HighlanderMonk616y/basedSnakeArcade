@@ -60,6 +60,17 @@ let shakeTime = 0;
 let gameOverTime = 0;
 let milestoneFlash = 0;
 
+// Background stars
+let stars = [];
+for (let i = 0; i < 80; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2.5 + 0.8,
+    speed: Math.random() * 0.4 + 0.1
+  });
+}
+
 // Particles
 let particles = [];
 let scorePopups = [];
@@ -142,6 +153,16 @@ function drawGrid() {
   }
 }
 
+function drawStars() {
+  ctx.fillStyle = '#fff';
+  stars.forEach(star => {
+    const alpha = 0.6 + Math.sin(Date.now() / 200 + star.x) * 0.4;
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(star.x, star.y, star.size, star.size);
+  });
+  ctx.globalAlpha = 1;
+}
+
 function drawCRTScanlines() {
   ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
   ctx.lineWidth = 2;
@@ -154,9 +175,10 @@ function drawCRTScanlines() {
 }
 
 function draw() {
-  ctx.fillStyle = '#0a0a0a';
+  ctx.fillStyle = '#050508';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  drawStars();
   drawGrid();
   drawNeonBorder();
 
@@ -303,7 +325,7 @@ function draw() {
 
   // Milestone flash
   if (milestoneFlash > 0) {
-    ctx.fillStyle = `rgba(255, 255, 0, ${milestoneFlash / 30})`;
+    ctx.fillStyle = `rgba(255, 255, 100, ${milestoneFlash / 30})`;
     ctx.font = 'bold 36px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('MILESTONE!', canvas.width/2, 90);
@@ -377,7 +399,6 @@ function update() {
       playSound(2200, 200, 'sine', 0.4);
     }
 
-    // Milestone celebration
     if (score % 500 === 0 && score > 0) {
       triggerMilestone();
     }
@@ -511,4 +532,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #19 - Milestone celebrations (every 500 points) with flash + extra shake added!");
+console.log("Basecade Commit #20 - Animated twinkling background stars added. Pure retro arcade atmosphere!");

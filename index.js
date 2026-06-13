@@ -38,6 +38,8 @@ let snake = [
 
 let dx = 1;
 let dy = 0;
+let nextDx = 1;
+let nextDy = 0;
 
 let food = {x: 15, y: 15};
 let foodPulse = 0;
@@ -357,6 +359,10 @@ function update() {
     multiplier = 1;
   }
 
+  // Apply next direction (prevents instant reversal)
+  dx = nextDx;
+  dy = nextDy;
+
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
@@ -451,12 +457,13 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Keyboard controls
+// Keyboard controls with next direction buffer
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
       snake = [{x: 10, y: 10}];
       dx = 1; dy = 0;
+      nextDx = 1; nextDy = 0;
       food = {x: 15, y: 15};
       score = 0;
       level = 1;
@@ -489,16 +496,16 @@ document.addEventListener('keydown', e => {
 
   switch (e.key) {
     case 'ArrowUp':
-      if (dy !== 1) { dx = 0; dy = -1; }
+      if (dy !== 1) { nextDx = 0; nextDy = -1; }
       break;
     case 'ArrowDown':
-      if (dy !== -1) { dx = 0; dy = 1; }
+      if (dy !== -1) { nextDx = 0; nextDy = 1; }
       break;
     case 'ArrowLeft':
-      if (dx !== 1) { dx = -1; dy = 0; }
+      if (dx !== 1) { nextDx = -1; nextDy = 0; }
       break;
     case 'ArrowRight':
-      if (dx !== -1) { dx = 1; dy = 0; }
+      if (dx !== -1) { nextDx = 1; nextDy = 0; }
       break;
   }
 });
@@ -520,11 +527,11 @@ canvas.addEventListener('touchend', e => {
 
   if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX > 0 && dx !== -1) { dx = 1; dy = 0; }
-      else if (deltaX < 0 && dx !== 1) { dx = -1; dy = 0; }
+      if (deltaX > 0 && dx !== -1) { nextDx = 1; nextDy = 0; }
+      else if (deltaX < 0 && dx !== 1) { nextDx = -1; nextDy = 0; }
     } else {
-      if (deltaY > 0 && dy !== -1) { dx = 0; dy = 1; }
-      else if (deltaY < 0 && dy !== 1) { dx = 0; dy = -1; }
+      if (deltaY > 0 && dy !== -1) { nextDx = 0; nextDy = 1; }
+      else if (deltaY < 0 && dy !== 1) { nextDx = 0; nextDy = -1; }
     }
   }
 }, false);
@@ -532,4 +539,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #20 - Animated twinkling background stars added. Pure retro arcade atmosphere!");
+console.log("Basecade Commit #21 - Direction buffer system added (no more instant reversal deaths)!");

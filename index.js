@@ -121,6 +121,11 @@ function getLevelColor() {
   return colors[(level - 1) % colors.length];
 }
 
+function getRainbowColor(index) {
+  const hue = (Date.now() / 8 + index * 25) % 360;
+  return `hsl(${hue}, 100%, 65%)`;
+}
+
 function drawNeonBorder() {
   const color = getLevelColor();
   ctx.strokeStyle = color;
@@ -263,7 +268,9 @@ function draw() {
     ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
   }
 
-  // Draw snake with glow trail
+  // Draw snake with glow trail + rainbow at high levels
+  const isRainbow = level >= 5;
+
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.shadowColor = '#0f0';
@@ -284,10 +291,17 @@ function draw() {
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
-      const intensity = Math.max(40, 220 - index * 7);
-      ctx.shadowColor = `rgb(0, ${intensity}, 0)`;
+      let color;
+      if (isRainbow) {
+        color = getRainbowColor(index);
+      } else {
+        const intensity = Math.max(40, 220 - index * 7);
+        color = `rgb(0, ${intensity}, 0)`;
+      }
+      
+      ctx.shadowColor = color;
       ctx.shadowBlur = 8;
-      ctx.fillStyle = `rgb(0, ${intensity}, 0)`;
+      ctx.fillStyle = color;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
     }
@@ -359,7 +373,6 @@ function update() {
     multiplier = 1;
   }
 
-  // Apply next direction (prevents instant reversal)
   dx = nextDx;
   dy = nextDy;
 
@@ -457,7 +470,7 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-// Keyboard controls with next direction buffer
+// Keyboard controls
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
@@ -539,4 +552,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #21 - Direction buffer system added (no more instant reversal deaths)!");
+console.log("Basecade Commit #22 - Rainbow snake mode at Level 5+ added! Looks awesome!");

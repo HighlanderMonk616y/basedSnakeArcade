@@ -13,9 +13,10 @@ canvas.height = GRID_HEIGHT * GRID_SIZE;
 
 // Simple Web Audio API for retro sounds
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let muted = false;
 
 function playSound(freq, duration, type = 'square', volume = 0.3) {
-  if (!audioContext) return;
+  if (!audioContext || muted) return;
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
   
@@ -202,7 +203,7 @@ function draw() {
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
     ctx.fillText('← ↑ ↓ →  or Swipe', canvas.width/2, 230);
-    ctx.fillText('P to Pause', canvas.width/2, 260);
+    ctx.fillText('P to Pause   M to Mute', canvas.width/2, 260);
 
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
@@ -347,6 +348,12 @@ function draw() {
     ctx.fillText('MILESTONE!', canvas.width/2, 90);
     milestoneFlash--;
   }
+
+  // Sound indicator
+  ctx.fillStyle = muted ? '#f66' : '#0f0';
+  ctx.font = '14px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
 
   // HUD
   ctx.fillStyle = '#0f0';
@@ -505,6 +512,11 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  if (e.key.toLowerCase() === 'm') {
+    muted = !muted;
+    return;
+  }
+
   if (!gameRunning || gameOver || paused) return;
 
   switch (e.key) {
@@ -552,4 +564,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #22 - Rainbow snake mode at Level 5+ added! Looks awesome!");
+console.log("Basecade Commit #23 - Mute toggle (M key) with visual indicator added!");

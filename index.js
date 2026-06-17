@@ -50,8 +50,8 @@ let level = 1;
 let combo = 0;
 let comboTimer = 0;
 let multiplier = 1;
-let highScore = localStorage.getItem('basecadeHighScore') || 0;
-let bestCombo = localStorage.getItem('basecadeBestCombo') || 0;
+let highScore = parseInt(localStorage.getItem('basecadeHighScore')) || 0;
+let bestCombo = parseInt(localStorage.getItem('basecadeBestCombo')) || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
@@ -62,6 +62,7 @@ let gameSpeed = 100;
 let shakeTime = 0;
 let gameOverTime = 0;
 let milestoneFlash = 0;
+let newRecordFlash = 0;   // New: live record beating flash
 
 // Background stars
 let stars = [];
@@ -349,6 +350,15 @@ function draw() {
     milestoneFlash--;
   }
 
+  // New Record flash
+  if (newRecordFlash > 0) {
+    ctx.fillStyle = `rgba(255, 215, 0, ${newRecordFlash / 40})`;
+    ctx.font = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('NEW RECORD!', canvas.width/2, 65);
+    newRecordFlash--;
+  }
+
   // Sound indicator
   ctx.fillStyle = muted ? '#f66' : '#0f0';
   ctx.font = '14px monospace';
@@ -410,6 +420,15 @@ function update() {
     multiplier = Math.min(6, Math.floor(combo / 3) + 1);
     const points = 10 * multiplier;
     score += points;
+
+    // Check for new high score in real time
+    if (score > highScore) {
+      highScore = score;
+      newRecordFlash = 45;           // trigger flash
+      localStorage.setItem('basecadeHighScore', highScore);
+      playSound(1600, 80, 'sine', 0.5);
+      playSound(2400, 120, 'sine', 0.4);
+    }
 
     playSound(800 + combo * 60, 80, 'sine', 0.4);
     playSound(1250 + combo * 90, 60, 'sine', 0.3);
@@ -500,6 +519,7 @@ document.addEventListener('keydown', e => {
       shakeTime = 0;
       gameOverTime = 0;
       milestoneFlash = 0;
+      newRecordFlash = 0;
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -564,4 +584,4 @@ canvas.addEventListener('touchend', e => {
 // Initial draw
 draw();
 
-console.log("Basecade Commit #23 - Mute toggle (M key) with visual indicator added!");
+console.log("Basecade Commit #24 - Live 'NEW RECORD!' flash when beating high score added!");

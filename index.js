@@ -42,7 +42,7 @@ let dy = 0;
 let nextDx = 1;
 let nextDy = 0;
 
-let food = {x: 15, y: 15};
+let food = {x: 15, y: 15, isPowerUp: false};
 let foodPulse = 0;
 
 let score = 0;
@@ -62,7 +62,7 @@ let gameSpeed = 100;
 let shakeTime = 0;
 let gameOverTime = 0;
 let milestoneFlash = 0;
-let newRecordFlash = 0;   // New: live record beating flash
+let newRecordFlash = 0;
 
 // Background stars
 let stars = [];
@@ -83,15 +83,16 @@ let scorePopups = [];
 let touchStartX = 0;
 let touchStartY = 0;
 
-function createEatParticles(x, y) {
-  for (let i = 0; i < 16; i++) {
+function createEatParticles(x, y, isBig = false) {
+  const count = isBig ? 28 : 16;
+  for (let i = 0; i < count; i++) {
     particles.push({
       x: x * GRID_SIZE + GRID_SIZE / 2,
       y: y * GRID_SIZE + GRID_SIZE / 2,
-      vx: (Math.random() - 0.5) * 7,
-      vy: (Math.random() - 0.5) * 7,
-      life: 30 + Math.random() * 20,
-      color: combo > 4 ? '#ff0' : '#0ff'
+      vx: (Math.random() - 0.5) * (isBig ? 9 : 7),
+      vy: (Math.random() - 0.5) * (isBig ? 9 : 7),
+      life: isBig ? 45 : 30 + Math.random() * 20,
+      color: isBig ? '#ff0' : '#0ff'
     });
   }
 }
@@ -100,8 +101,8 @@ function createScorePopup(x, y, points) {
   scorePopups.push({
     x: x * GRID_SIZE + GRID_SIZE / 2,
     y: y * GRID_SIZE - 10,
-    vy: -1.5,
-    life: 50,
+    vy: -1.8,
+    life: 55,
     score: points
   });
 }
@@ -112,6 +113,19 @@ function triggerMilestone() {
   playSound(1200, 120, 'sine', 0.6);
   playSound(1800, 200, 'sine', 0.5);
   playSound(2400, 300, 'sine', 0.4);
+}
+
+function spawnFood() {
+  const isPowerUp = Math.random() < 0.12; // ~12% chance
+  let newFood;
+  do {
+    newFood = {
+      x: Math.floor(Math.random() * GRID_WIDTH),
+      y: Math.floor(Math.random() * GRID_HEIGHT),
+      isPowerUp: isPowerUp
+    };
+  } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+  food = newFood;
 }
 
 function getLevelFromScore() {
@@ -270,9 +284,8 @@ function draw() {
     ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
   }
 
-  // Draw snake with glow trail + rainbow at high levels
+  // Draw snake
   const isRainbow = level >= 5;
-
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.shadowColor = '#0f0';
@@ -284,12 +297,10 @@ function draw() {
       ctx.fillStyle = '#000';
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
-      
       if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12; }
       else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12; }
       else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4; }
       else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14; }
-      
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
@@ -300,7 +311,6 @@ function draw() {
         const intensity = Math.max(40, 220 - index * 7);
         color = `rgb(0, ${intensity}, 0)`;
       }
-      
       ctx.shadowColor = color;
       ctx.shadowBlur = 8;
       ctx.fillStyle = color;
@@ -309,18 +319,18 @@ function draw() {
     }
   });
 
-  // Draw pulsing food
-  foodPulse = (foodPulse + 0.18) % (Math.PI * 2);
-  const pulseSize = Math.sin(foodPulse) * 3 + (GRID_SIZE - 7);
+  // Draw food (normal or power-up)
+  foodPulse = (foodPulse + 0.22) % (Math.PI * 2);
+  const pulse = Math.sin(foodPulse) * 3 + (GRID_SIZE - (food.isPowerUp ? 4 : 7));
   
-  ctx.shadowColor = '#f00';
-  ctx.shadowBlur = 15;
-  ctx.fillStyle = '#f00';
+  ctx.shadowBlur = food.isPowerUp ? 25 : 15;
+  ctx.shadowColor = food.isPowerUp ? '#ff0' : '#f00';
+  ctx.fillStyle = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillRect(
-    food.x * GRID_SIZE + (GRID_SIZE - pulseSize)/2,
-    food.y * GRID_SIZE + (GRID_SIZE - pulseSize)/2,
-    pulseSize,
-    pulseSize
+    food.x * GRID_SIZE + (GRID_SIZE - pulse)/2,
+    food.y * GRID_SIZE + (GRID_SIZE - pulse)/2,
+    pulse,
+    pulse
   );
   ctx.shadowBlur = 0;
 
@@ -336,12 +346,11 @@ function draw() {
   ctx.textAlign = 'center';
   scorePopups.forEach(p => {
     ctx.globalAlpha = p.life / 50;
-    ctx.fillStyle = p.score > 10 ? '#ff0' : '#fff';
+    ctx.fillStyle = p.score > 20 ? '#ff0' : '#fff';
     ctx.fillText(`+${p.score}`, p.x, p.y);
   });
   ctx.globalAlpha = 1;
 
-  // Milestone flash
   if (milestoneFlash > 0) {
     ctx.fillStyle = `rgba(255, 255, 100, ${milestoneFlash / 30})`;
     ctx.font = 'bold 36px monospace';
@@ -350,7 +359,6 @@ function draw() {
     milestoneFlash--;
   }
 
-  // New Record flash
   if (newRecordFlash > 0) {
     ctx.fillStyle = `rgba(255, 215, 0, ${newRecordFlash / 40})`;
     ctx.font = 'bold 28px monospace';
@@ -359,13 +367,11 @@ function draw() {
     newRecordFlash--;
   }
 
-  // Sound indicator
   ctx.fillStyle = muted ? '#f66' : '#0f0';
   ctx.font = '14px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
 
-  // HUD
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
@@ -416,23 +422,24 @@ function update() {
   snake.unshift(head);
 
   if (head.x === food.x && head.y === food.y) {
+    const isPowerUp = food.isPowerUp;
     combo++;
     multiplier = Math.min(6, Math.floor(combo / 3) + 1);
-    const points = 10 * multiplier;
+    const basePoints = isPowerUp ? 50 : 10;
+    const points = basePoints * multiplier;
     score += points;
 
-    // Check for new high score in real time
     if (score > highScore) {
       highScore = score;
-      newRecordFlash = 45;           // trigger flash
+      newRecordFlash = 45;
       localStorage.setItem('basecadeHighScore', highScore);
       playSound(1600, 80, 'sine', 0.5);
       playSound(2400, 120, 'sine', 0.4);
     }
 
-    playSound(800 + combo * 60, 80, 'sine', 0.4);
-    playSound(1250 + combo * 90, 60, 'sine', 0.3);
-    createEatParticles(food.x, food.y);
+    playSound(isPowerUp ? 1100 : 800 + combo * 60, 80, 'sine', 0.5);
+    playSound(isPowerUp ? 1700 : 1250 + combo * 90, 100, 'sine', 0.4);
+    createEatParticles(food.x, food.y, isPowerUp);
     createScorePopup(food.x, food.y, points);
     
     const newLevel = getLevelFromScore();
@@ -448,15 +455,7 @@ function update() {
       triggerMilestone();
     }
 
-    let newFood;
-    do {
-      newFood = {
-        x: Math.floor(Math.random() * GRID_WIDTH),
-        y: Math.floor(Math.random() * GRID_HEIGHT)
-      };
-    } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
-    food = newFood;
-
+    spawnFood();
     comboTimer = 50;
   } else {
     snake.pop();
@@ -503,7 +502,7 @@ document.addEventListener('keydown', e => {
       snake = [{x: 10, y: 10}];
       dx = 1; dy = 0;
       nextDx = 1; nextDy = 0;
-      food = {x: 15, y: 15};
+      food = {x: 15, y: 15, isPowerUp: false};
       score = 0;
       level = 1;
       combo = 0;
@@ -581,7 +580,7 @@ canvas.addEventListener('touchend', e => {
   }
 }, false);
 
-// Initial draw
+spawnFood(); // initial food
 draw();
 
-console.log("Basecade Commit #24 - Live 'NEW RECORD!' flash when beating high score added!");
+console.log("Basecade Commit #25 - Golden Power-up food added! Rare big bonus points!");

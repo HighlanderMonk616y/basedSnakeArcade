@@ -56,6 +56,7 @@ let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
 let paused = false;
+let invincible = 0;   // frames of invincibility
 
 let lastTime = 0;
 let gameSpeed = 100;
@@ -84,14 +85,14 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 function createEatParticles(x, y, isBig = false) {
-  const count = isBig ? 28 : 16;
+  const count = isBig ? 32 : 16;
   for (let i = 0; i < count; i++) {
     particles.push({
       x: x * GRID_SIZE + GRID_SIZE / 2,
       y: y * GRID_SIZE + GRID_SIZE / 2,
-      vx: (Math.random() - 0.5) * (isBig ? 9 : 7),
-      vy: (Math.random() - 0.5) * (isBig ? 9 : 7),
-      life: isBig ? 45 : 30 + Math.random() * 20,
+      vx: (Math.random() - 0.5) * (isBig ? 10 : 7),
+      vy: (Math.random() - 0.5) * (isBig ? 10 : 7),
+      life: isBig ? 50 : 30 + Math.random() * 20,
       color: isBig ? '#ff0' : '#0ff'
     });
   }
@@ -116,7 +117,7 @@ function triggerMilestone() {
 }
 
 function spawnFood() {
-  const isPowerUp = Math.random() < 0.12; // ~12% chance
+  const isPowerUp = Math.random() < 0.13;
   let newFood;
   do {
     newFood = {
@@ -286,11 +287,13 @@ function draw() {
 
   // Draw snake
   const isRainbow = level >= 5;
+  const isInvincible = invincible > 0;
+
   snake.forEach((segment, index) => {
     if (index === 0) {
-      ctx.shadowColor = '#0f0';
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = '#0f0';
+      ctx.shadowColor = isInvincible ? '#ff0' : '#0f0';
+      ctx.shadowBlur = isInvincible ? 20 : 12;
+      ctx.fillStyle = isInvincible ? '#ff0' : '#0f0';
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
       
@@ -311,19 +314,21 @@ function draw() {
         const intensity = Math.max(40, 220 - index * 7);
         color = `rgb(0, ${intensity}, 0)`;
       }
+      if (isInvincible) ctx.globalAlpha = 0.6 + Math.sin(Date.now()/60) * 0.4;
       ctx.shadowColor = color;
       ctx.shadowBlur = 8;
       ctx.fillStyle = color;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
     }
   });
 
-  // Draw food (normal or power-up)
+  // Draw food
   foodPulse = (foodPulse + 0.22) % (Math.PI * 2);
   const pulse = Math.sin(foodPulse) * 3 + (GRID_SIZE - (food.isPowerUp ? 4 : 7));
   
-  ctx.shadowBlur = food.isPowerUp ? 25 : 15;
+  ctx.shadowBlur = food.isPowerUp ? 28 : 15;
   ctx.shadowColor = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillStyle = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillRect(
@@ -390,6 +395,8 @@ function draw() {
 function update() {
   if (!gameRunning || gameOver || paused) return;
 
+  if (invincible > 0) invincible--;
+
   if (comboTimer > 0) comboTimer--;
   else if (combo > 0) {
     combo = 0;
@@ -402,20 +409,24 @@ function update() {
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
   if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
-    gameOver = true;
-    gameRunning = false;
-    gameOverTime = Date.now();
-    playSound(200, 400, 'sawtooth', 0.4);
-    return;
-  }
-
-  for (let segment of snake) {
-    if (segment.x === head.x && segment.y === head.y) {
+    if (invincible === 0) {
       gameOver = true;
       gameRunning = false;
       gameOverTime = Date.now();
       playSound(200, 400, 'sawtooth', 0.4);
       return;
+    }
+  }
+
+  for (let segment of snake) {
+    if (segment.x === head.x && segment.y === head.y) {
+      if (invincible === 0) {
+        gameOver = true;
+        gameRunning = false;
+        gameOverTime = Date.now();
+        playSound(200, 400, 'sawtooth', 0.4);
+        return;
+      }
     }
   }
 
@@ -429,6 +440,13 @@ function update() {
     const points = basePoints * multiplier;
     score += points;
 
+    if (isPowerUp) {
+      invincible = 180; // ~3 seconds at normal speed
+      createEatParticles(food.x, food.y, true);
+    } else {
+      createEatParticles(food.x, food.y, false);
+    }
+
     if (score > highScore) {
       highScore = score;
       newRecordFlash = 45;
@@ -439,7 +457,6 @@ function update() {
 
     playSound(isPowerUp ? 1100 : 800 + combo * 60, 80, 'sine', 0.5);
     playSound(isPowerUp ? 1700 : 1250 + combo * 90, 100, 'sine', 0.4);
-    createEatParticles(food.x, food.y, isPowerUp);
     createScorePopup(food.x, food.y, points);
     
     const newLevel = getLevelFromScore();
@@ -519,6 +536,7 @@ document.addEventListener('keydown', e => {
       gameOverTime = 0;
       milestoneFlash = 0;
       newRecordFlash = 0;
+      invincible = 0;
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -580,7 +598,7 @@ canvas.addEventListener('touchend', e => {
   }
 }, false);
 
-spawnFood(); // initial food
+spawnFood();
 draw();
 
-console.log("Basecade Commit #25 - Golden Power-up food added! Rare big bonus points!");
+console.log("Basecade Commit #26 - Power-up now grants temporary invincibility (ghost mode)!");

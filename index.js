@@ -56,7 +56,7 @@ let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
 let paused = false;
-let invincible = 0;   // frames of invincibility
+let invincible = 0;
 
 let lastTime = 0;
 let gameSpeed = 100;
@@ -85,14 +85,14 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 function createEatParticles(x, y, isBig = false) {
-  const count = isBig ? 32 : 16;
+  const count = isBig ? 36 : 16;
   for (let i = 0; i < count; i++) {
     particles.push({
       x: x * GRID_SIZE + GRID_SIZE / 2,
       y: y * GRID_SIZE + GRID_SIZE / 2,
-      vx: (Math.random() - 0.5) * (isBig ? 10 : 7),
-      vy: (Math.random() - 0.5) * (isBig ? 10 : 7),
-      life: isBig ? 50 : 30 + Math.random() * 20,
+      vx: (Math.random() - 0.5) * (isBig ? 11 : 7),
+      vy: (Math.random() - 0.5) * (isBig ? 11 : 7),
+      life: isBig ? 55 : 32 + Math.random() * 20,
       color: isBig ? '#ff0' : '#0ff'
     });
   }
@@ -288,12 +288,13 @@ function draw() {
   // Draw snake
   const isRainbow = level >= 5;
   const isInvincible = invincible > 0;
+  const flash = isInvincible && (Math.floor(Date.now() / 60) % 2 === 0);
 
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.shadowColor = isInvincible ? '#ff0' : '#0f0';
-      ctx.shadowBlur = isInvincible ? 20 : 12;
-      ctx.fillStyle = isInvincible ? '#ff0' : '#0f0';
+      ctx.shadowBlur = isInvincible ? 22 : 12;
+      ctx.fillStyle = flash ? '#ff0' : (isInvincible ? '#ff0' : '#0f0');
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
       
@@ -314,7 +315,7 @@ function draw() {
         const intensity = Math.max(40, 220 - index * 7);
         color = `rgb(0, ${intensity}, 0)`;
       }
-      if (isInvincible) ctx.globalAlpha = 0.6 + Math.sin(Date.now()/60) * 0.4;
+      if (isInvincible) ctx.globalAlpha = 0.5 + Math.sin(Date.now()/50) * 0.5;
       ctx.shadowColor = color;
       ctx.shadowBlur = 8;
       ctx.fillStyle = color;
@@ -328,7 +329,7 @@ function draw() {
   foodPulse = (foodPulse + 0.22) % (Math.PI * 2);
   const pulse = Math.sin(foodPulse) * 3 + (GRID_SIZE - (food.isPowerUp ? 4 : 7));
   
-  ctx.shadowBlur = food.isPowerUp ? 28 : 15;
+  ctx.shadowBlur = food.isPowerUp ? 32 : 15;
   ctx.shadowColor = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillStyle = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillRect(
@@ -408,25 +409,21 @@ function update() {
 
   const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-  if (head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) {
-    if (invincible === 0) {
+  if ((head.x < 0 || head.x >= GRID_WIDTH || head.y < 0 || head.y >= GRID_HEIGHT) && invincible === 0) {
+    gameOver = true;
+    gameRunning = false;
+    gameOverTime = Date.now();
+    playSound(200, 400, 'sawtooth', 0.4);
+    return;
+  }
+
+  for (let segment of snake) {
+    if (segment.x === head.x && segment.y === head.y && invincible === 0) {
       gameOver = true;
       gameRunning = false;
       gameOverTime = Date.now();
       playSound(200, 400, 'sawtooth', 0.4);
       return;
-    }
-  }
-
-  for (let segment of snake) {
-    if (segment.x === head.x && segment.y === head.y) {
-      if (invincible === 0) {
-        gameOver = true;
-        gameRunning = false;
-        gameOverTime = Date.now();
-        playSound(200, 400, 'sawtooth', 0.4);
-        return;
-      }
     }
   }
 
@@ -441,8 +438,10 @@ function update() {
     score += points;
 
     if (isPowerUp) {
-      invincible = 180; // ~3 seconds at normal speed
+      invincible = 210; // ~3.5 seconds
       createEatParticles(food.x, food.y, true);
+      playSound(900, 100, 'sine', 0.6);
+      playSound(1600, 180, 'sine', 0.5);
     } else {
       createEatParticles(food.x, food.y, false);
     }
@@ -601,4 +600,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #26 - Power-up now grants temporary invincibility (ghost mode)!");
+console.log("Basecade Commit #27 - Invincibility now has flashing visual + stronger particles on power-up!");

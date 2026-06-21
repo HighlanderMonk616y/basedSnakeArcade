@@ -143,6 +143,12 @@ function getRainbowColor(index) {
   return `hsl(${hue}, 100%, 65%)`;
 }
 
+function calculateGameSpeed() {
+  let speed = 100 - (level - 1) * 7;
+  speed = Math.max(38, speed - Math.floor(snake.length / 8) * 2); // length-based speed
+  return Math.max(28, speed);
+}
+
 function drawNeonBorder() {
   const color = getLevelColor();
   ctx.strokeStyle = color;
@@ -378,6 +384,14 @@ function draw() {
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
 
+  // Speed bar
+  const speedPercent = (140 - gameSpeed) / 110;
+  ctx.fillStyle = '#333';
+  ctx.fillRect(canvas.width - 85, 85, 70, 8);
+  ctx.fillStyle = speedPercent > 0.7 ? '#f80' : '#0f0';
+  ctx.fillRect(canvas.width - 85, 85, 70 * speedPercent, 8);
+
+  // HUD
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
@@ -438,7 +452,7 @@ function update() {
     score += points;
 
     if (isPowerUp) {
-      invincible = 210; // ~3.5 seconds
+      invincible = 210;
       createEatParticles(food.x, food.y, true);
       playSound(900, 100, 'sine', 0.6);
       playSound(1600, 180, 'sine', 0.5);
@@ -461,7 +475,6 @@ function update() {
     const newLevel = getLevelFromScore();
     if (newLevel > level) {
       level = newLevel;
-      gameSpeed = Math.max(30, gameSpeed - 7);
       shakeTime = 8;
       playSound(1500, 100, 'sine', 0.5);
       playSound(2200, 200, 'sine', 0.4);
@@ -477,6 +490,8 @@ function update() {
     snake.pop();
     playSound(400, 20, 'square', 0.1);
   }
+
+  gameSpeed = calculateGameSpeed();
 
   // Update particles
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -600,4 +615,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #27 - Invincibility now has flashing visual + stronger particles on power-up!");
+console.log("Basecade Commit #28 - Dynamic speed based on length + visual speed bar added!");

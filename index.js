@@ -139,26 +139,30 @@ function getLevelColor() {
 }
 
 function getRainbowColor(index) {
-  const hue = (Date.now() / 8 + index * 25) % 360;
-  return `hsl(${hue}, 100%, 65%)`;
+  const hue = (Date.now() / 6 + index * 20) % 360;
+  return `hsl(${hue}, 100%, 70%)`;
 }
 
 function calculateGameSpeed() {
   let speed = 100 - (level - 1) * 7;
-  speed = Math.max(38, speed - Math.floor(snake.length / 8) * 2); // length-based speed
+  speed = Math.max(38, speed - Math.floor(snake.length / 8) * 2);
   return Math.max(28, speed);
 }
 
+function isInFeverMode() {
+  return combo >= 8;
+}
+
 function drawNeonBorder() {
-  const color = getLevelColor();
+  const color = isInFeverMode() ? '#ff0' : getLevelColor();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 8;
+  ctx.lineWidth = isInFeverMode() ? 10 : 8;
   ctx.shadowColor = color;
-  ctx.shadowBlur = 20;
+  ctx.shadowBlur = isInFeverMode() ? 30 : 20;
   
   let offset = 0;
   if (shakeTime > 0) {
-    offset = (Math.random() - 0.5) * 5;
+    offset = (Math.random() - 0.5) * 6;
     shakeTime--;
   }
   
@@ -291,16 +295,17 @@ function draw() {
     ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
   }
 
-  // Draw snake
   const isRainbow = level >= 5;
   const isInvincible = invincible > 0;
+  const isFever = isInFeverMode();
   const flash = isInvincible && (Math.floor(Date.now() / 60) % 2 === 0);
 
+  // Draw snake
   snake.forEach((segment, index) => {
     if (index === 0) {
-      ctx.shadowColor = isInvincible ? '#ff0' : '#0f0';
-      ctx.shadowBlur = isInvincible ? 22 : 12;
-      ctx.fillStyle = flash ? '#ff0' : (isInvincible ? '#ff0' : '#0f0');
+      ctx.shadowColor = isInvincible || isFever ? '#ff0' : '#0f0';
+      ctx.shadowBlur = (isInvincible || isFever) ? 24 : 12;
+      ctx.fillStyle = flash ? '#ff0' : (isInvincible || isFever ? '#ff0' : '#0f0');
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
       
@@ -315,7 +320,7 @@ function draw() {
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
       let color;
-      if (isRainbow) {
+      if (isRainbow || isFever) {
         color = getRainbowColor(index);
       } else {
         const intensity = Math.max(40, 220 - index * 7);
@@ -323,7 +328,7 @@ function draw() {
       }
       if (isInvincible) ctx.globalAlpha = 0.5 + Math.sin(Date.now()/50) * 0.5;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = isFever ? 14 : 8;
       ctx.fillStyle = color;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
@@ -379,19 +384,18 @@ function draw() {
     newRecordFlash--;
   }
 
+  if (isInFeverMode()) {
+    ctx.fillStyle = '#ff0';
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('FEVER MODE!', canvas.width/2, 48);
+  }
+
   ctx.fillStyle = muted ? '#f66' : '#0f0';
   ctx.font = '14px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
 
-  // Speed bar
-  const speedPercent = (140 - gameSpeed) / 110;
-  ctx.fillStyle = '#333';
-  ctx.fillRect(canvas.width - 85, 85, 70, 8);
-  ctx.fillStyle = speedPercent > 0.7 ? '#f80' : '#0f0';
-  ctx.fillRect(canvas.width - 85, 85, 70 * speedPercent, 8);
-
-  // HUD
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
@@ -615,4 +619,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #28 - Dynamic speed based on length + visual speed bar added!");
+console.log("Basecade Commit #29 - FEVER MODE when combo ≥ 8 with intense visuals added!");

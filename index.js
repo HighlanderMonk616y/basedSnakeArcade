@@ -79,6 +79,7 @@ for (let i = 0; i < 80; i++) {
 // Particles
 let particles = [];
 let scorePopups = [];
+let confetti = [];   // New: confetti for high score
 
 // Touch swipe support
 let touchStartX = 0;
@@ -94,6 +95,21 @@ function createEatParticles(x, y, isBig = false) {
       vy: (Math.random() - 0.5) * (isBig ? 11 : 7),
       life: isBig ? 55 : 32 + Math.random() * 20,
       color: isBig ? '#ff0' : '#0ff'
+    });
+  }
+}
+
+function createConfetti(x, y) {
+  for (let i = 0; i < 80; i++) {
+    const hue = Math.random() * 360;
+    confetti.push({
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 12,
+      vy: (Math.random() - 0.5) * 8 - 6,
+      life: 90 + Math.random() * 60,
+      color: `hsl(${hue}, 100%, 65%)`,
+      size: Math.random() * 7 + 4
     });
   }
 }
@@ -295,12 +311,12 @@ function draw() {
     ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
   }
 
+  // Draw snake
   const isRainbow = level >= 5;
   const isInvincible = invincible > 0;
-  const isFever = isInFeverMode();
+  const isFever = combo >= 8;
   const flash = isInvincible && (Math.floor(Date.now() / 60) % 2 === 0);
 
-  // Draw snake
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.shadowColor = isInvincible || isFever ? '#ff0' : '#0f0';
@@ -358,6 +374,14 @@ function draw() {
     ctx.fillRect(p.x, p.y, 5, 5);
   });
 
+  // Draw confetti
+  confetti.forEach((c, i) => {
+    ctx.fillStyle = c.color;
+    ctx.globalAlpha = c.life / 100;
+    ctx.fillRect(c.x, c.y, c.size, c.size * 0.6);
+  });
+  ctx.globalAlpha = 1;
+
   // Draw score popups
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
@@ -384,7 +408,7 @@ function draw() {
     newRecordFlash--;
   }
 
-  if (isInFeverMode()) {
+  if (combo >= 8) {
     ctx.fillStyle = '#ff0';
     ctx.font = 'bold 18px monospace';
     ctx.textAlign = 'center';
@@ -464,12 +488,15 @@ function update() {
       createEatParticles(food.x, food.y, false);
     }
 
+    // New high score celebration
     if (score > highScore) {
       highScore = score;
-      newRecordFlash = 45;
+      newRecordFlash = 55;
+      createConfetti(canvas.width / 2, 120);
       localStorage.setItem('basecadeHighScore', highScore);
       playSound(1600, 80, 'sine', 0.5);
       playSound(2400, 120, 'sine', 0.4);
+      playSound(3000, 200, 'sine', 0.3);
     }
 
     playSound(isPowerUp ? 1100 : 800 + combo * 60, 80, 'sine', 0.5);
@@ -506,6 +533,17 @@ function update() {
     p.vx *= 0.94;
     p.vy *= 0.94;
     if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Update confetti
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    const c = confetti[i];
+    c.x += c.vx;
+    c.y += c.vy;
+    c.vy += 0.25;
+    c.life--;
+    c.vx *= 0.98;
+    if (c.life <= 0) confetti.splice(i, 1);
   }
 
   // Update score popups
@@ -550,6 +588,7 @@ document.addEventListener('keydown', e => {
       lastTime = 0;
       particles = [];
       scorePopups = [];
+      confetti = [];
       shakeTime = 0;
       gameOverTime = 0;
       milestoneFlash = 0;
@@ -619,4 +658,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #29 - FEVER MODE when combo ≥ 8 with intense visuals added!");
+console.log("Basecade Commit #30 - Epic confetti explosion on new high score added!");

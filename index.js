@@ -51,6 +51,7 @@ let combo = 0;
 let comboTimer = 0;
 let multiplier = 1;
 let highScore = parseInt(localStorage.getItem('basecadeHighScore')) || 0;
+let highScoreHistory = JSON.parse(localStorage.getItem('basecadeHighScoreHistory')) || [];
 let bestCombo = parseInt(localStorage.getItem('basecadeBestCombo')) || 0;
 let gameOver = false;
 let gameRunning = false;
@@ -79,11 +80,7 @@ for (let i = 0; i < 80; i++) {
 // Particles
 let particles = [];
 let scorePopups = [];
-let confetti = [];   // New: confetti for high score
-
-// Touch swipe support
-let touchStartX = 0;
-let touchStartY = 0;
+let confetti = [];
 
 function createEatParticles(x, y, isBig = false) {
   const count = isBig ? 36 : 16;
@@ -122,6 +119,16 @@ function createScorePopup(x, y, points) {
     life: 55,
     score: points
   });
+}
+
+function saveHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('basecadeHighScore', highScore);
+  }
+  highScoreHistory.unshift(score);
+  highScoreHistory = highScoreHistory.slice(0, 5);
+  localStorage.setItem('basecadeHighScoreHistory', JSON.stringify(highScoreHistory));
 }
 
 function triggerMilestone() {
@@ -283,9 +290,16 @@ function draw() {
 
     if (score > highScore) {
       highScore = score;
-      localStorage.setItem('basecadeHighScore', highScore);
+      saveHighScore();
       ctx.fillStyle = '#0f0';
       ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 285);
+    } else if (highScoreHistory.length > 0) {
+      ctx.fillStyle = '#aaa';
+      ctx.font = '16px monospace';
+      ctx.fillText('Recent High Scores:', canvas.width/2, 290);
+      highScoreHistory.forEach((s, i) => {
+        ctx.fillText(`#${i+1}: ${s}`, canvas.width/2, 315 + i*22);
+      });
     }
 
     if (combo > bestCombo) {
@@ -297,7 +311,7 @@ function draw() {
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 350);
+    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 380);
     drawCRTScanlines();
     return;
   }
@@ -367,14 +381,13 @@ function draw() {
   );
   ctx.shadowBlur = 0;
 
-  // Draw particles
+  // Draw particles + confetti
   particles.forEach((p) => {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.life / 45;
     ctx.fillRect(p.x, p.y, 5, 5);
   });
 
-  // Draw confetti
   confetti.forEach((c, i) => {
     ctx.fillStyle = c.color;
     ctx.globalAlpha = c.life / 100;
@@ -456,6 +469,7 @@ function update() {
     gameRunning = false;
     gameOverTime = Date.now();
     playSound(200, 400, 'sawtooth', 0.4);
+    saveHighScore();
     return;
   }
 
@@ -465,6 +479,7 @@ function update() {
       gameRunning = false;
       gameOverTime = Date.now();
       playSound(200, 400, 'sawtooth', 0.4);
+      saveHighScore();
       return;
     }
   }
@@ -488,12 +503,11 @@ function update() {
       createEatParticles(food.x, food.y, false);
     }
 
-    // New high score celebration
     if (score > highScore) {
       highScore = score;
       newRecordFlash = 55;
       createConfetti(canvas.width / 2, 120);
-      localStorage.setItem('basecadeHighScore', highScore);
+      saveHighScore();
       playSound(1600, 80, 'sine', 0.5);
       playSound(2400, 120, 'sine', 0.4);
       playSound(3000, 200, 'sine', 0.3);
@@ -658,4 +672,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #30 - Epic confetti explosion on new high score added!");
+console.log("Basecade Commit #31 - High score history (last 5 scores) with localStorage added!");

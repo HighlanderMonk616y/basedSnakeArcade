@@ -61,6 +61,9 @@ let invincible = 0;
 
 let startTime = 0;
 let gameTime = 0;
+let frameCount = 0;
+let fps = 0;
+let lastFpsTime = 0;
 
 let lastTime = 0;
 let gameSpeed = 100;
@@ -378,14 +381,13 @@ function draw() {
   );
   ctx.shadowBlur = 0;
 
-  // Draw particles
+  // Draw particles + confetti
   particles.forEach((p) => {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.life / 45;
     ctx.fillRect(p.x, p.y, 5, 5);
   });
 
-  // Draw confetti
   confetti.forEach((c) => {
     ctx.fillStyle = c.color;
     ctx.globalAlpha = c.life / 100;
@@ -426,17 +428,27 @@ function draw() {
     ctx.fillText('FEVER MODE!', canvas.width/2, 48);
   }
 
-  // Animated multiplier
-  const multPulse = Math.sin(Date.now() / 80) * 0.1 + 1;
-  ctx.fillStyle = '#ff0';
-  ctx.font = `bold ${18 * multPulse}px monospace`;
-  ctx.textAlign = 'right';
-  ctx.fillText(`x${multiplier}`, canvas.width - 10, 95);
-
   ctx.fillStyle = muted ? '#f66' : '#0f0';
   ctx.font = '14px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
+
+  // Speedometer
+  const speedPercent = (140 - gameSpeed) / 110;
+  ctx.fillStyle = '#333';
+  ctx.fillRect(canvas.width - 90, 85, 75, 8);
+  ctx.fillStyle = speedPercent > 0.75 ? '#f80' : '#0f0';
+  ctx.fillRect(canvas.width - 90, 85, 75 * speedPercent, 8);
+  ctx.fillStyle = '#fff';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('SPEED', canvas.width - 10, 82);
+
+  // FPS
+  ctx.fillStyle = '#aaa';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`FPS: ${fps}`, 10, canvas.height - 35);
 
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
@@ -448,6 +460,7 @@ function draw() {
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
   ctx.fillText(`LEVEL: ${level}`, canvas.width - 10, 48);
+  ctx.fillText(`COMBO: x${multiplier}`, canvas.width - 10, 71);
 
   drawCRTScanlines();
 }
@@ -573,6 +586,14 @@ function update() {
     p.life--;
     if (p.life <= 0) scorePopups.splice(i, 1);
   }
+
+  // FPS calculation
+  frameCount++;
+  if (Date.now() - lastFpsTime > 1000) {
+    fps = frameCount;
+    frameCount = 0;
+    lastFpsTime = Date.now();
+  }
 }
 
 function gameLoop(timestamp) {
@@ -615,6 +636,8 @@ document.addEventListener('keydown', e => {
       newRecordFlash = 0;
       invincible = 0;
       startTime = Date.now();
+      frameCount = 0;
+      lastFpsTime = Date.now();
       playSound(600, 100, 'sine');
       playSound(900, 80, 'sine');
     }
@@ -679,4 +702,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #33 - Animated score multiplier display added!");
+console.log("Basecade Commit #34 - On-screen speedometer + FPS counter added!");

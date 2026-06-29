@@ -317,12 +317,26 @@ function draw() {
   }
 
   if (paused) {
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
-    ctx.font = 'bold 28px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#0f0';
+    ctx.font = 'bold 32px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
-    ctx.font = '16px monospace';
-    ctx.fillText('Press P to Resume', canvas.width/2, canvas.height/2 + 40);
+    ctx.fillText('PAUSED', canvas.width/2, 120);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px monospace';
+    ctx.fillText(`SCORE: ${score}`, canvas.width/2, 180);
+    ctx.fillText(`LEVEL: ${level}`, canvas.width/2, 210);
+    ctx.fillText(`COMBO: x${multiplier}`, canvas.width/2, 240);
+    ctx.fillText(`LENGTH: ${snake.length}`, canvas.width/2, 270);
+
+    ctx.font = '18px monospace';
+    ctx.fillText('P - Resume', canvas.width/2, 340);
+    ctx.fillText('R - Restart', canvas.width/2, 370);
+    ctx.fillText('M - Toggle Sound', canvas.width/2, 400);
+    return;
   }
 
   // Draw snake
@@ -432,23 +446,6 @@ function draw() {
   ctx.font = '14px monospace';
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
-
-  // Speedometer
-  const speedPercent = (140 - gameSpeed) / 110;
-  ctx.fillStyle = '#333';
-  ctx.fillRect(canvas.width - 90, 85, 75, 8);
-  ctx.fillStyle = speedPercent > 0.75 ? '#f80' : '#0f0';
-  ctx.fillRect(canvas.width - 90, 85, 75 * speedPercent, 8);
-  ctx.fillStyle = '#fff';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'right';
-  ctx.fillText('SPEED', canvas.width - 10, 82);
-
-  // FPS
-  ctx.fillStyle = '#aaa';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText(`FPS: ${fps}`, 10, canvas.height - 35);
 
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
@@ -650,6 +647,36 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  if (e.key.toLowerCase() === 'r' && paused) {
+    // Restart from pause
+    snake = [{x: 10, y: 10}];
+    dx = 1; dy = 0;
+    nextDx = 1; nextDy = 0;
+    food = {x: 15, y: 15, isPowerUp: false};
+    score = 0;
+    level = 1;
+    combo = 0;
+    multiplier = 1;
+    gameSpeed = 100;
+    gameOver = false;
+    gameRunning = true;
+    paused = false;
+    lastTime = 0;
+    particles = [];
+    scorePopups = [];
+    confetti = [];
+    shakeTime = 0;
+    milestoneFlash = 0;
+    newRecordFlash = 0;
+    invincible = 0;
+    startTime = Date.now();
+    frameCount = 0;
+    lastFpsTime = Date.now();
+    playSound(600, 100, 'sine');
+    playSound(900, 80, 'sine');
+    return;
+  }
+
   if (e.key.toLowerCase() === 'm') {
     muted = !muted;
     return;
@@ -702,4 +729,4 @@ canvas.addEventListener('touchend', e => {
 spawnFood();
 draw();
 
-console.log("Basecade Commit #34 - On-screen speedometer + FPS counter added!");
+console.log("Basecade Commit #35 - Enhanced pause menu with live stats + R to restart added!");

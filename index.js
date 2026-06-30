@@ -14,6 +14,8 @@ canvas.height = GRID_HEIGHT * GRID_SIZE;
 // Simple Web Audio API for retro sounds
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let muted = false;
+let musicEnabled = true;
+let musicOscillators = [];
 
 function playSound(freq, duration, type = 'square', volume = 0.3) {
   if (!audioContext || muted) return;
@@ -31,6 +33,29 @@ function playSound(freq, duration, type = 'square', volume = 0.3) {
   setTimeout(() => {
     oscillator.stop();
   }, duration);
+}
+
+function startMusic() {
+  if (!musicEnabled || !audioContext) return;
+  stopMusic();
+  
+  const notes = [330, 392, 523, 392, 330, 523, 659, 523];
+  let index = 0;
+  
+  const playNote = () => {
+    if (!musicEnabled) return;
+    playSound(notes[index % notes.length], 180, 'sawtooth', 0.15);
+    index++;
+    setTimeout(playNote, 220);
+  };
+  playNote();
+}
+
+function stopMusic() {
+  musicOscillators.forEach(osc => {
+    try { osc.stop(); } catch(e) {}
+  });
+  musicOscillators = [];
 }
 
 let snake = [
@@ -258,7 +283,7 @@ function draw() {
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
     ctx.fillText('← ↑ ↓ →  or Swipe', canvas.width/2, 230);
-    ctx.fillText('P to Pause   M to Mute', canvas.width/2, 260);
+    ctx.fillText('P to Pause   M to Mute   B Music', canvas.width/2, 260);
 
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
@@ -336,6 +361,7 @@ function draw() {
     ctx.fillText('P - Resume', canvas.width/2, 340);
     ctx.fillText('R - Restart', canvas.width/2, 370);
     ctx.fillText('M - Toggle Sound', canvas.width/2, 400);
+    ctx.fillText('B - Toggle Music', canvas.width/2, 430);
     return;
   }
 
@@ -648,7 +674,6 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.key.toLowerCase() === 'r' && paused) {
-    // Restart from pause
     snake = [{x: 10, y: 10}];
     dx = 1; dy = 0;
     nextDx = 1; nextDy = 0;
@@ -679,6 +704,13 @@ document.addEventListener('keydown', e => {
 
   if (e.key.toLowerCase() === 'm') {
     muted = !muted;
+    return;
+  }
+
+  if (e.key.toLowerCase() === 'b') {
+    musicEnabled = !musicEnabled;
+    if (musicEnabled) startMusic();
+    else stopMusic();
     return;
   }
 
@@ -727,6 +759,7 @@ canvas.addEventListener('touchend', e => {
 }, false);
 
 spawnFood();
+startMusic();
 draw();
 
-console.log("Basecade Commit #35 - Enhanced pause menu with live stats + R to restart added!");
+console.log("Basecade Commit #36 - Background music toggle (B key) added!");

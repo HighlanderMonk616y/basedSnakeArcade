@@ -112,6 +112,7 @@ for (let i = 0; i < 80; i++) {
 let particles = [];
 let scorePopups = [];
 let confetti = [];
+let trailParticles = []; // New trail
 
 function createEatParticles(x, y, isBig = false) {
   const count = isBig ? 36 : 16;
@@ -125,6 +126,15 @@ function createEatParticles(x, y, isBig = false) {
       color: isBig ? '#ff0' : '#0ff'
     });
   }
+}
+
+function createTrailParticle(x, y) {
+  trailParticles.push({
+    x: x * GRID_SIZE + GRID_SIZE / 2,
+    y: y * GRID_SIZE + GRID_SIZE / 2,
+    life: 18,
+    color: '#0f0'
+  });
 }
 
 function createConfetti(x, y) {
@@ -283,7 +293,7 @@ function draw() {
     ctx.font = '16px monospace';
     ctx.fillText('Press SPACE to Start', canvas.width/2, 200);
     ctx.fillText('← ↑ ↓ →  or Swipe', canvas.width/2, 230);
-    ctx.fillText('P to Pause   M to Mute   B Music', canvas.width/2, 260);
+    ctx.fillText('P Pause   M Mute   B Music', canvas.width/2, 260);
 
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
@@ -421,11 +431,17 @@ function draw() {
   );
   ctx.shadowBlur = 0;
 
-  // Draw particles + confetti
+  // Draw particles + confetti + trail
   particles.forEach((p) => {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.life / 45;
     ctx.fillRect(p.x, p.y, 5, 5);
+  });
+
+  trailParticles.forEach((t) => {
+    ctx.fillStyle = t.color;
+    ctx.globalAlpha = t.life / 20;
+    ctx.fillRect(t.x, t.y, 6, 6);
   });
 
   confetti.forEach((c) => {
@@ -528,6 +544,9 @@ function update() {
 
   snake.unshift(head);
 
+  // Create trail
+  createTrailParticle(snake[1].x, snake[1].y);
+
   if (head.x === food.x && head.y === food.y) {
     const isPowerUp = food.isPowerUp;
     combo++;
@@ -589,6 +608,12 @@ function update() {
     p.vx *= 0.94;
     p.vy *= 0.94;
     if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Update trail
+  for (let i = trailParticles.length - 1; i >= 0; i--) {
+    trailParticles[i].life--;
+    if (trailParticles[i].life <= 0) trailParticles.splice(i, 1);
   }
 
   // Update confetti
@@ -653,6 +678,7 @@ document.addEventListener('keydown', e => {
       particles = [];
       scorePopups = [];
       confetti = [];
+      trailParticles = [];
       shakeTime = 0;
       gameOverTime = 0;
       milestoneFlash = 0;
@@ -690,6 +716,7 @@ document.addEventListener('keydown', e => {
     particles = [];
     scorePopups = [];
     confetti = [];
+    trailParticles = [];
     shakeTime = 0;
     milestoneFlash = 0;
     newRecordFlash = 0;
@@ -762,4 +789,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #36 - Background music toggle (B key) added!");
+console.log("Basecade Commit #37 - Particle trail behind snake head added!");

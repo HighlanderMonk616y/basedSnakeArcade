@@ -96,6 +96,9 @@ let shakeTime = 0;
 let gameOverTime = 0;
 let milestoneFlash = 0;
 let newRecordFlash = 0;
+let levelUpFlash = 0;
+
+let previousLevel = 1;
 
 // Background stars
 let stars = [];
@@ -112,7 +115,7 @@ for (let i = 0; i < 80; i++) {
 let particles = [];
 let scorePopups = [];
 let confetti = [];
-let trailParticles = []; // New trail
+let trailParticles = [];
 
 function createEatParticles(x, y, isBig = false) {
   const count = isBig ? 36 : 16;
@@ -124,6 +127,19 @@ function createEatParticles(x, y, isBig = false) {
       vy: (Math.random() - 0.5) * (isBig ? 11 : 7),
       life: isBig ? 55 : 32 + Math.random() * 20,
       color: isBig ? '#ff0' : '#0ff'
+    });
+  }
+}
+
+function createLevelUpExplosion() {
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2 - 40,
+      vx: (Math.random() - 0.5) * 14,
+      vy: (Math.random() - 0.5) * 14 - 3,
+      life: 50 + Math.random() * 40,
+      color: '#ff0'
     });
   }
 }
@@ -477,6 +493,14 @@ function draw() {
     newRecordFlash--;
   }
 
+  if (levelUpFlash > 0) {
+    ctx.fillStyle = `rgba(0, 255, 255, ${levelUpFlash / 25})`;
+    ctx.font = 'bold 42px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL UP!', canvas.width/2, 140);
+    levelUpFlash--;
+  }
+
   if (combo >= 8) {
     ctx.fillStyle = '#ff0';
     ctx.font = 'bold 18px monospace';
@@ -581,7 +605,9 @@ function update() {
     const newLevel = getLevelFromScore();
     if (newLevel > level) {
       level = newLevel;
-      shakeTime = 8;
+      levelUpFlash = 45;
+      createLevelUpExplosion();
+      shakeTime = 12;
       playSound(1500, 100, 'sine', 0.5);
       playSound(2200, 200, 'sine', 0.4);
     }
@@ -683,6 +709,7 @@ document.addEventListener('keydown', e => {
       gameOverTime = 0;
       milestoneFlash = 0;
       newRecordFlash = 0;
+      levelUpFlash = 0;
       invincible = 0;
       startTime = Date.now();
       frameCount = 0;
@@ -720,6 +747,7 @@ document.addEventListener('keydown', e => {
     shakeTime = 0;
     milestoneFlash = 0;
     newRecordFlash = 0;
+    levelUpFlash = 0;
     invincible = 0;
     startTime = Date.now();
     frameCount = 0;
@@ -789,4 +817,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #37 - Particle trail behind snake head added!");
+console.log("Basecade Commit #38 - Level-up explosion + screen flash added!");

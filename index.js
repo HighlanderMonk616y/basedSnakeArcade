@@ -98,8 +98,6 @@ let milestoneFlash = 0;
 let newRecordFlash = 0;
 let levelUpFlash = 0;
 
-let previousLevel = 1;
-
 // Background stars
 let stars = [];
 for (let i = 0; i < 80; i++) {
@@ -396,22 +394,23 @@ function draw() {
   const isInvincible = invincible > 0;
   const isFever = combo >= 8;
   const flash = isInvincible && (Math.floor(Date.now() / 60) % 2 === 0);
+  const bob = Math.sin(Date.now() / 80) * 1.2;
 
   snake.forEach((segment, index) => {
     if (index === 0) {
       ctx.shadowColor = isInvincible || isFever ? '#ff0' : '#0f0';
       ctx.shadowBlur = (isInvincible || isFever) ? 24 : 12;
       ctx.fillStyle = flash ? '#ff0' : (isInvincible || isFever ? '#ff0' : '#0f0');
-      ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
+      ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE + bob, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
       
       ctx.fillStyle = '#000';
       const eyeSize = 4;
       let eyeX1, eyeY1, eyeX2, eyeY2;
-      if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12; }
-      else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12; }
-      else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4; }
-      else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14; }
+      if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
+      else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
+      else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4 + bob; }
+      else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14 + bob; }
       ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
       ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
     } else {
@@ -817,4 +816,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #38 - Level-up explosion + screen flash added!");
+console.log("Basecade Commit #39 - Subtle snake head bob animation added!");

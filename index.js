@@ -422,8 +422,11 @@ function draw() {
         color = `rgb(0, ${intensity}, 0)`;
       }
       if (isInvincible) ctx.globalAlpha = 0.5 + Math.sin(Date.now()/50) * 0.5;
+      
+      // Length-based glow
+      const glow = Math.min(18, Math.floor(snake.length / 6));
       ctx.shadowColor = color;
-      ctx.shadowBlur = isFever ? 14 : 8;
+      ctx.shadowBlur = isFever ? 14 + glow : 8 + glow / 2;
       ctx.fillStyle = color;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
@@ -816,4 +819,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #39 - Subtle snake head bob animation added!");
+console.log("Basecade Commit #40 - Snake body glow intensity based on length added!");

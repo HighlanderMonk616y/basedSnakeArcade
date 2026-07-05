@@ -78,6 +78,7 @@ let multiplier = 1;
 let highScore = parseInt(localStorage.getItem('basecadeHighScore')) || 0;
 let highScoreHistory = JSON.parse(localStorage.getItem('basecadeHighScoreHistory')) || [];
 let bestCombo = parseInt(localStorage.getItem('basecadeBestCombo')) || 0;
+let bestLength = parseInt(localStorage.getItem('basecadeBestLength')) || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
@@ -180,6 +181,10 @@ function saveHighScore() {
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('basecadeHighScore', highScore);
+  }
+  if (snake.length > bestLength) {
+    bestLength = snake.length;
+    localStorage.setItem('basecadeBestLength', bestLength);
   }
   highScoreHistory.unshift(score);
   highScoreHistory = highScoreHistory.slice(0, 5);
@@ -311,7 +316,8 @@ function draw() {
 
     ctx.fillStyle = '#ff0';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
-    ctx.fillText(`BEST COMBO: ${bestCombo}`, canvas.width/2, 325);
+    ctx.fillText(`BEST LENGTH: ${bestLength}`, canvas.width/2, 325);
+    ctx.fillText(`BEST COMBO: ${bestCombo}`, canvas.width/2, 350);
     return;
   }
 
@@ -351,16 +357,23 @@ function draw() {
       ctx.fillText('🏆 NEW HIGH SCORE!', canvas.width/2, 315);
     }
 
+    if (snake.length > bestLength) {
+      bestLength = snake.length;
+      localStorage.setItem('basecadeBestLength', bestLength);
+      ctx.fillStyle = '#0ff';
+      ctx.fillText('🏅 NEW BEST LENGTH!', canvas.width/2, 345);
+    }
+
     ctx.fillStyle = '#aaa';
     ctx.font = '16px monospace';
-    ctx.fillText('Recent High Scores:', canvas.width/2, 355);
+    ctx.fillText('Recent High Scores:', canvas.width/2, 380);
     highScoreHistory.forEach((s, i) => {
-      ctx.fillText(`#${i+1}: ${s}`, canvas.width/2, 380 + i*22);
+      ctx.fillText(`#${i+1}: ${s}`, canvas.width/2, 405 + i*22);
     });
 
     ctx.fillStyle = '#fff';
     ctx.font = '16px monospace';
-    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 500);
+    ctx.fillText('Press SPACE to Try Again', canvas.width/2, 520);
     drawCRTScanlines();
     return;
   }
@@ -423,7 +436,6 @@ function draw() {
       }
       if (isInvincible) ctx.globalAlpha = 0.5 + Math.sin(Date.now()/50) * 0.5;
       
-      // Length-based glow
       const glow = Math.min(18, Math.floor(snake.length / 6));
       ctx.shadowColor = color;
       ctx.shadowBlur = isFever ? 14 + glow : 8 + glow / 2;
@@ -468,6 +480,13 @@ function draw() {
     ctx.fillRect(c.x, c.y, c.size, c.size * 0.6);
   });
   ctx.globalAlpha = 1;
+
+  // Combo timer bar
+  if (comboTimer > 0) {
+    const barWidth = 120 * (comboTimer / 50);
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(canvas.width / 2 - 60, 72, barWidth, 6);
+  }
 
   // Draw score popups
   ctx.font = 'bold 16px monospace';
@@ -819,4 +838,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #40 - Snake body glow intensity based on length added!");
+console.log("Basecade Commit #42 - Combo timer visual bar added!");

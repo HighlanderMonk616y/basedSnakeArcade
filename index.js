@@ -130,6 +130,15 @@ function createEatParticles(x, y, isBig = false) {
   }
 }
 
+function createGhostTrail(x, y) {
+  trailParticles.push({
+    x: x * GRID_SIZE + GRID_SIZE / 2,
+    y: y * GRID_SIZE + GRID_SIZE / 2,
+    life: 22,
+    color: '#ff0'
+  });
+}
+
 function createLevelUpExplosion() {
   for (let i = 0; i < 120; i++) {
     particles.push({
@@ -422,8 +431,10 @@ function draw() {
       ctx.shadowColor = isInvincible || isFever ? '#ff0' : '#0f0';
       ctx.shadowBlur = (isInvincible || isFever) ? 24 : 12;
       ctx.fillStyle = flash ? '#ff0' : (isInvincible || isFever ? '#ff0' : '#0f0');
+      if (isInvincible) ctx.globalAlpha = 0.6 + Math.sin(Date.now()/80) * 0.4;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE + bob, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
       
       ctx.fillStyle = '#000';
       const eyeSize = 4;
@@ -442,11 +453,11 @@ function draw() {
         const intensity = Math.max(40, 220 - index * 7);
         color = `rgb(0, ${intensity}, 0)`;
       }
-      if (isInvincible) ctx.globalAlpha = 0.5 + Math.sin(Date.now()/50) * 0.5;
+      if (isInvincible) ctx.globalAlpha = 0.45 + Math.sin(Date.now()/60 + index) * 0.35;
       
       const glow = Math.min(18, Math.floor(snake.length / 6));
-      ctx.shadowColor = color;
-      ctx.shadowBlur = isFever ? 14 + glow : 8 + glow / 2;
+      ctx.shadowColor = isInvincible ? '#ff0' : color;
+      ctx.shadowBlur = isFever ? 14 + glow : (isInvincible ? 16 : 8 + glow / 2);
       ctx.fillStyle = color;
       ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
       ctx.shadowBlur = 0;
@@ -478,8 +489,8 @@ function draw() {
 
   trailParticles.forEach((t) => {
     ctx.fillStyle = t.color;
-    ctx.globalAlpha = t.life / 20;
-    ctx.fillRect(t.x, t.y, 6, 6);
+    ctx.globalAlpha = t.life / 22;
+    ctx.fillRect(t.x - 3, t.y - 3, 8, 8);
   });
 
   confetti.forEach((c) => {
@@ -548,9 +559,14 @@ function draw() {
   ctx.fillText(`SCORE: ${score}`, 10, 25);
   ctx.fillText(`LEN: ${snake.length}`, 10, 48);
 
-  ctx.fillStyle = '#ff0';
+  // Pulsing high score
+  const highPulse = score >= highScore * 0.9 ? Math.sin(Date.now() / 120) * 3 + 16 : 16;
+  ctx.fillStyle = score > highScore - 50 ? '#ff0' : '#fff';
+  ctx.font = `bold ${highPulse}px monospace`;
   ctx.textAlign = 'right';
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
+  
+  ctx.font = '16px monospace';
   ctx.fillText(`BEST LEN: ${bestLength}`, canvas.width - 10, 48);
   ctx.fillText(`LEVEL: ${level}`, canvas.width - 10, 71);
   
@@ -601,7 +617,11 @@ function update() {
   snake.unshift(head);
 
   // Create trail
-  createTrailParticle(snake[1].x, snake[1].y);
+  if (invincible > 0) {
+    createGhostTrail(snake[1].x, snake[1].y);
+  } else {
+    createTrailParticle(snake[1].x, snake[1].y);
+  }
 
   if (head.x === food.x && head.y === food.y) {
     const isPowerUp = food.isPowerUp;
@@ -849,4 +869,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #45 - Power-up invincibility visual indicator added!");
+console.log("Basecade Commit #47 - Ghost mode visuals (semi-transparent + yellow trail) during invincibility added!");

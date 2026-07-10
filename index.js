@@ -79,6 +79,7 @@ let highScore = parseInt(localStorage.getItem('basecadeHighScore')) || 0;
 let highScoreHistory = JSON.parse(localStorage.getItem('basecadeHighScoreHistory')) || [];
 let bestCombo = parseInt(localStorage.getItem('basecadeBestCombo')) || 0;
 let bestLength = parseInt(localStorage.getItem('basecadeBestLength')) || 0;
+let gamesPlayed = parseInt(localStorage.getItem('basecadeGamesPlayed')) || 0;
 let gameOver = false;
 let gameRunning = false;
 let gameStarted = false;
@@ -130,15 +131,6 @@ function createEatParticles(x, y, isBig = false) {
   }
 }
 
-function createGhostTrail(x, y) {
-  trailParticles.push({
-    x: x * GRID_SIZE + GRID_SIZE / 2,
-    y: y * GRID_SIZE + GRID_SIZE / 2,
-    life: 22,
-    color: '#ff0'
-  });
-}
-
 function createLevelUpExplosion() {
   for (let i = 0; i < 120; i++) {
     particles.push({
@@ -150,6 +142,15 @@ function createLevelUpExplosion() {
       color: '#ff0'
     });
   }
+}
+
+function createGhostTrail(x, y) {
+  trailParticles.push({
+    x: x * GRID_SIZE + GRID_SIZE / 2,
+    y: y * GRID_SIZE + GRID_SIZE / 2,
+    life: 22,
+    color: '#ff0'
+  });
 }
 
 function createTrailParticle(x, y) {
@@ -335,6 +336,7 @@ function draw() {
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 300);
     ctx.fillText(`BEST LENGTH: ${bestLength}`, canvas.width/2, 325);
     ctx.fillText(`BEST COMBO: ${bestCombo}`, canvas.width/2, 350);
+    ctx.fillText(`GAMES PLAYED: ${gamesPlayed}`, canvas.width/2, 375);
     return;
   }
 
@@ -739,6 +741,9 @@ function gameLoop(timestamp) {
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') {
     if (!gameStarted || gameOver) {
+      gamesPlayed++;
+      localStorage.setItem('basecadeGamesPlayed', gamesPlayed);
+      
       snake = [{x: 10, y: 10}];
       dx = 1; dy = 0;
       nextDx = 1; nextDy = 0;
@@ -779,6 +784,9 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.key.toLowerCase() === 'r' && paused) {
+    gamesPlayed++;
+    localStorage.setItem('basecadeGamesPlayed', gamesPlayed);
+    
     snake = [{x: 10, y: 10}];
     dx = 1; dy = 0;
     nextDx = 1; nextDy = 0;
@@ -869,4 +877,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #47 - Ghost mode visuals (semi-transparent + yellow trail) during invincibility added!");
+console.log("Basecade Commit #48 - Games played counter with persistence added!");

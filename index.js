@@ -267,6 +267,12 @@ function getMultiplierColor() {
   return '#0f0';
 }
 
+function getSpeedColor(speed) {
+  if (speed < 45) return '#f00';
+  if (speed < 65) return '#ff0';
+  return '#0f0';
+}
+
 function drawNeonBorder() {
   let color = isInFeverMode() ? '#ff0' : getLevelColor();
   if (invincible > 0) color = '#ff0';
@@ -533,6 +539,17 @@ function draw() {
     ctx.fillStyle = '#ff0';
     ctx.fillRect(canvas.width / 2 - 60, 72, barWidth, 6);
   }
+
+  // Speedometer
+  const speedPercent = (140 - gameSpeed) / 110;
+  ctx.fillStyle = '#333';
+  ctx.fillRect(canvas.width - 90, 120, 75, 8);
+  ctx.fillStyle = getSpeedColor(gameSpeed);
+  ctx.fillRect(canvas.width - 90, 120, 75 * speedPercent, 8);
+  ctx.fillStyle = '#fff';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('SPEED', canvas.width - 10, 117);
 
   // Length milestone flash
   if (lengthMilestoneFlash > 0) {
@@ -931,4 +948,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log;
+console.log("Basecade Commit #54 - Speedometer color coding added!");

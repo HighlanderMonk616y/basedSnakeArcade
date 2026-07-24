@@ -134,13 +134,13 @@ function createEatParticles(x, y, isBig = false) {
 }
 
 function createLengthMilestoneExplosion() {
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 90; i++) {
     particles.push({
-      x: canvas.width / 2 + (Math.random() - 0.5) * 120,
+      x: canvas.width / 2 + (Math.random() - 0.5) * 140,
       y: 160,
-      vx: (Math.random() - 0.5) * 9,
-      vy: (Math.random() - 0.5) * 9 - 4,
-      life: 45 + Math.random() * 35,
+      vx: (Math.random() - 0.5) * 11,
+      vy: (Math.random() - 0.5) * 11 - 5,
+      life: 55 + Math.random() * 35,
       color: '#0ff'
     });
   }
@@ -284,7 +284,7 @@ function drawNeonBorder() {
   
   let offset = 0;
   if (shakeTime > 0) {
-    offset = (Math.random() - 0.5) * 6;
+    offset = (Math.random() - 0.5) * 8;
     shakeTime--;
   }
   
@@ -712,8 +712,10 @@ function update() {
       score += bonus;
       lengthMilestoneFlash = 55;
       createLengthMilestoneExplosion();
+      shakeTime = 25; // stronger shake on milestone
       playSound(1800, 120, 'sine', 0.6);
       playSound(2400, 180, 'sine', 0.5);
+      playSound(3200, 100, 'sine', 0.4);
     }
 
     playSound(isPowerUp ? 1100 : 800 + combo * 60, 80, 'sine', 0.5);
@@ -948,4 +950,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #54 - Speedometer color coding added!");
+console.log("Basecade Commit #55 - Enhanced screen shake on length milestones added!");

@@ -601,6 +601,18 @@ function draw() {
     ctx.fillText('FEVER MODE!', canvas.width/2, 48);
   }
 
+  // Combo streak indicator
+  if (combo > 2) {
+    const comboPulse = Math.sin(Date.now() / 80) * 2 + 18;
+    ctx.fillStyle = '#ff0';
+    ctx.font = `bold ${comboPulse}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 15;
+    ctx.fillText(`${combo}`, canvas.width / 2 + 75, 48);
+    ctx.shadowBlur = 0;
+  }
+
   ctx.fillStyle = muted ? '#f66' : '#0f0';
   ctx.font = '14px monospace';
   ctx.textAlign = 'left';
@@ -712,7 +724,7 @@ function update() {
       score += bonus;
       lengthMilestoneFlash = 55;
       createLengthMilestoneExplosion();
-      shakeTime = 25; // stronger shake on milestone
+      shakeTime = 25;
       playSound(1800, 120, 'sine', 0.6);
       playSound(2400, 180, 'sine', 0.5);
       playSound(3200, 100, 'sine', 0.4);
@@ -950,4 +962,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #55 - Enhanced screen shake on length milestones added!");
+console.log("Basecade Commit #56 - Combo streak visual indicator added!");

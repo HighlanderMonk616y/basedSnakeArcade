@@ -211,6 +211,10 @@ function saveHighScore() {
     bestLength = snake.length;
     localStorage.setItem('basecadeBestLength', bestLength);
   }
+  if (combo > bestCombo) {
+    bestCombo = combo;
+    localStorage.setItem('basecadeBestCombo', bestCombo);
+  }
   highScoreHistory.unshift(score);
   highScoreHistory = highScoreHistory.slice(0, 5);
   localStorage.setItem('basecadeHighScoreHistory', JSON.stringify(highScoreHistory));
@@ -274,13 +278,21 @@ function getSpeedColor(speed) {
 }
 
 function drawNeonBorder() {
-  let color = isInFeverMode() ? '#ff0' : getLevelColor();
-  if (invincible > 0) color = '#ff0';
+  let baseColor = isInFeverMode() ? '#ff0' : getLevelColor();
+  let color = baseColor;
+  let blur = 20;
+  let lineWidth = 8;
+  
+  if (invincible > 0) {
+    color = '#ff0';
+    lineWidth = 14;
+    blur = 40 + Math.sin(Date.now() / 40) * 15;
+  }
   
   ctx.strokeStyle = color;
-  ctx.lineWidth = invincible > 0 ? 12 : (isInFeverMode() ? 10 : 8);
+  ctx.lineWidth = lineWidth;
   ctx.shadowColor = color;
-  ctx.shadowBlur = invincible > 0 ? 35 : (isInFeverMode() ? 30 : 20);
+  ctx.shadowBlur = blur;
   
   let offset = 0;
   if (shakeTime > 0) {
@@ -409,6 +421,11 @@ function draw() {
       ctx.fillText('🏅 NEW BEST LENGTH!', canvas.width/2, 345);
     }
 
+    if (combo > bestCombo) {
+      bestCombo = combo;
+      localStorage.setItem('basecadeBestCombo', bestCombo);
+    }
+
     ctx.fillStyle = '#aaa';
     ctx.font = '16px monospace';
     ctx.fillText('Recent High Scores:', canvas.width/2, 380);
@@ -443,12 +460,13 @@ function draw() {
     ctx.fillStyle = '#ff0';
     ctx.font = 'bold 18px monospace';
     ctx.fillText(`HIGH SCORE: ${highScore}`, canvas.width/2, 340);
+    ctx.fillText(`BEST COMBO: ${bestCombo}`, canvas.width/2, 365);
 
     ctx.font = '18px monospace';
-    ctx.fillText('P - Resume', canvas.width/2, 380);
-    ctx.fillText('R - Restart', canvas.width/2, 410);
-    ctx.fillText('M - Toggle Sound', canvas.width/2, 440);
-    ctx.fillText('B - Toggle Music', canvas.width/2, 470);
+    ctx.fillText('P - Resume', canvas.width/2, 400);
+    ctx.fillText('R - Restart', canvas.width/2, 430);
+    ctx.fillText('M - Toggle Sound', canvas.width/2, 460);
+    ctx.fillText('B - Toggle Music', canvas.width/2, 490);
     return;
   }
 
@@ -538,6 +556,19 @@ function draw() {
     const barWidth = 120 * (comboTimer / 50);
     ctx.fillStyle = '#ff0';
     ctx.fillRect(canvas.width / 2 - 60, 72, barWidth, 6);
+  }
+
+  // Invincibility timer bar
+  if (invincible > 0) {
+    const invPercent = invincible / 210;
+    ctx.fillStyle = '#333';
+    ctx.fillRect(10, 94, 100, 7);
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(10, 94, 100 * invPercent, 7);
+    ctx.fillStyle = '#fff';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('INVINCIBLE', 10, 90);
   }
 
   // Speedometer
@@ -962,4 +993,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #56 - Combo streak visual indicator added!");
+console.log("Basecade Commit #59 - Invincibility timer bar added!");

@@ -100,6 +100,7 @@ let milestoneFlash = 0;
 let newRecordFlash = 0;
 let levelUpFlash = 0;
 let lengthMilestoneFlash = 0;
+let feverFlash = 0;
 
 // Background stars
 let stars = [];
@@ -129,6 +130,20 @@ function createEatParticles(x, y, isBig = false) {
       vy: (Math.random() - 0.5) * (isBig ? 11 : 7),
       life: isBig ? 55 : 32 + Math.random() * 20,
       color: isBig ? '#ff0' : '#0ff'
+    });
+  }
+}
+
+function createFeverExplosion() {
+  for (let i = 0; i < 140; i++) {
+    const hue = Math.random() * 60 + 30; // yellow-orange range
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2 - 20,
+      vx: (Math.random() - 0.5) * 16,
+      vy: (Math.random() - 0.5) * 16 - 4,
+      life: 60 + Math.random() * 40,
+      color: `hsl(${hue}, 100%, 60%)`
     });
   }
 }
@@ -591,6 +606,15 @@ function draw() {
     lengthMilestoneFlash--;
   }
 
+  // Fever flash
+  if (feverFlash > 0) {
+    ctx.fillStyle = `rgba(255, 200, 0, ${feverFlash / 40})`;
+    ctx.font = 'bold 36px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔥 FEVER MODE 🔥', canvas.width/2, 100);
+    feverFlash--;
+  }
+
   // Draw score popups
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
@@ -722,11 +746,22 @@ function update() {
 
   if (head.x === food.x && head.y === food.y) {
     const isPowerUp = food.isPowerUp;
+    const previousCombo = combo;
     combo++;
     multiplier = Math.min(6, Math.floor(combo / 3) + 1);
     const basePoints = isPowerUp ? 50 : 10;
     const points = basePoints * multiplier;
     score += points;
+
+    // Fever mode entry
+    if (previousCombo < 8 && combo >= 8) {
+      createFeverExplosion();
+      feverFlash = 50;
+      shakeTime = 18;
+      playSound(1400, 100, 'sine', 0.6);
+      playSound(2000, 150, 'sine', 0.5);
+      playSound(2800, 220, 'sine', 0.4);
+    }
 
     if (isPowerUp) {
       invincible = 210;
@@ -880,6 +915,7 @@ document.addEventListener('keydown', e => {
       newRecordFlash = 0;
       levelUpFlash = 0;
       lengthMilestoneFlash = 0;
+      feverFlash = 0;
       invincible = 0;
       startTime = Date.now();
       gameTime = 0;
@@ -923,6 +959,7 @@ document.addEventListener('keydown', e => {
     newRecordFlash = 0;
     levelUpFlash = 0;
     lengthMilestoneFlash = 0;
+    feverFlash = 0;
     invincible = 0;
     startTime = Date.now();
     gameTime = 0;
@@ -993,4 +1030,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #59 - Invincibility timer bar added!");
+console.log("Basecade Commit #60 - Fever mode entry explosion added!");

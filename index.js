@@ -136,7 +136,7 @@ function createEatParticles(x, y, isBig = false) {
 
 function createFeverExplosion() {
   for (let i = 0; i < 140; i++) {
-    const hue = Math.random() * 60 + 30; // yellow-orange range
+    const hue = Math.random() * 60 + 30;
     particles.push({
       x: canvas.width / 2,
       y: canvas.height / 2 - 20,
@@ -586,6 +586,18 @@ function draw() {
     ctx.fillText('INVINCIBLE', 10, 90);
   }
 
+  // Level progress bar
+  const scoreInLevel = score % 100;
+  const levelProgress = scoreInLevel / 100;
+  ctx.fillStyle = '#333';
+  ctx.fillRect(10, 115, 100, 6);
+  ctx.fillStyle = getLevelColor();
+  ctx.fillRect(10, 115, 100 * levelProgress, 6);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('LEVEL', 10, 112);
+
   // Speedometer
   const speedPercent = (140 - gameSpeed) / 110;
   ctx.fillStyle = '#333';
@@ -1030,4 +1042,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #60 - Fever mode entry explosion added!");
+console.log("Basecade Commit #61 - Level progress bar added!");

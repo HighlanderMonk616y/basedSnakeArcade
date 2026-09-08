@@ -244,7 +244,9 @@ function triggerMilestone() {
 }
 
 function spawnFood() {
-  const isPowerUp = Math.random() < 0.13;
+  // Power-up chance increases slightly with level (capped)
+  const powerUpChance = Math.min(0.22, 0.13 + (level - 1) * 0.015);
+  const isPowerUp = Math.random() < powerUpChance;
   let newFood;
   do {
     newFood = {
@@ -1042,4 +1044,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #61 - Level progress bar added!");
+console.log("Basecade #62 - Power-up spawn rate now scales with level!");

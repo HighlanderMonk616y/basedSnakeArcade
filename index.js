@@ -102,6 +102,10 @@ let levelUpFlash = 0;
 let lengthMilestoneFlash = 0;
 let feverFlash = 0;
 
+// Eye blink
+let blinkTimer = 0;
+let isBlinking = false;
+
 // Background stars
 let stars = [];
 for (let i = 0; i < 80; i++) {
@@ -517,15 +521,18 @@ function draw() {
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
       
-      ctx.fillStyle = '#000';
-      const eyeSize = 4;
-      let eyeX1, eyeY1, eyeX2, eyeY2;
-      if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
-      else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
-      else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4 + bob; }
-      else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14 + bob; }
-      ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
-      ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
+      // Eyes (with blink)
+      if (!isBlinking) {
+        ctx.fillStyle = '#000';
+        const eyeSize = 4;
+        let eyeX1, eyeY1, eyeX2, eyeY2;
+        if (dx === 1) { eyeX1 = segment.x * GRID_SIZE + 12; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
+        else if (dx === -1) { eyeX1 = segment.x * GRID_SIZE + 4; eyeY1 = segment.y * GRID_SIZE + 6 + bob; eyeX2 = segment.x * GRID_SIZE + 4; eyeY2 = segment.y * GRID_SIZE + 12 + bob; }
+        else if (dy === -1) { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 4 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 4 + bob; }
+        else { eyeX1 = segment.x * GRID_SIZE + 6; eyeY1 = segment.y * GRID_SIZE + 14 + bob; eyeX2 = segment.x * GRID_SIZE + 12; eyeY2 = segment.y * GRID_SIZE + 14 + bob; }
+        ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
+        ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
+      }
     } else {
       let color;
       if (isRainbow || isFever) {
@@ -741,6 +748,16 @@ function draw() {
 
 function update() {
   if (!gameRunning || gameOver || paused) return;
+
+  // Eye blink logic
+  blinkTimer++;
+  if (blinkTimer > 90 + Math.random() * 60) {
+    isBlinking = true;
+    blinkTimer = 0;
+  }
+  if (isBlinking && blinkTimer > 6) {
+    isBlinking = false;
+  }
 
   if (invincible > 0) invincible--;
 
@@ -959,6 +976,8 @@ document.addEventListener('keydown', e => {
       lengthMilestoneFlash = 0;
       feverFlash = 0;
       invincible = 0;
+      blinkTimer = 0;
+      isBlinking = false;
       startTime = Date.now();
       gameTime = 0;
       frameCount = 0;
@@ -1003,6 +1022,8 @@ document.addEventListener('keydown', e => {
     lengthMilestoneFlash = 0;
     feverFlash = 0;
     invincible = 0;
+    blinkTimer = 0;
+    isBlinking = false;
     startTime = Date.now();
     gameTime = 0;
     frameCount = 0;
@@ -1072,4 +1093,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #64 - Subtle vignette overlay added!");
+console.log("Basecade Commit #65 - Blinking eyes added to the snake head!");

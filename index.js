@@ -358,9 +358,13 @@ function drawStars() {
 }
 
 function drawCRTScanlines() {
-  ctx.strokeStyle = 'rgba(0, 255, 255, 0.08)';
-  ctx.lineWidth = 2;
-  for (let y = 0; y < canvas.height; y += 4) {
+  const isFever = isInFeverMode();
+  const alpha = isFever ? 0.18 : 0.08;
+  const step = isFever ? 3 : 4;
+  
+  ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+  ctx.lineWidth = isFever ? 2.5 : 2;
+  for (let y = 0; y < canvas.height; y += step) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
@@ -1093,4 +1097,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #65 - Blinking eyes added to the snake head!");
+console.log("Basecade - CRT scanlines intensify during fever mode!");

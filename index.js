@@ -102,6 +102,7 @@ let levelUpFlash = 0;
 let lengthMilestoneFlash = 0;
 let feverFlash = 0;
 let powerUpFlash = 0;
+let comboBreakFlash = 0;
 
 // Eye blink
 let blinkTimer = 0;
@@ -684,6 +685,15 @@ function draw() {
     feverFlash--;
   }
 
+  // Combo break flash
+  if (comboBreakFlash > 0) {
+    ctx.fillStyle = `rgba(255, 80, 80, ${comboBreakFlash / 30})`;
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('COMBO BREAK', canvas.width/2, 95);
+    comboBreakFlash--;
+  }
+
   // Draw score popups
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
@@ -782,8 +792,14 @@ function update() {
 
   if (invincible > 0) invincible--;
 
-  if (comboTimer > 0) comboTimer--;
-  else if (combo > 0) {
+  if (comboTimer > 0) {
+    comboTimer--;
+  } else if (combo > 0) {
+    // Combo just broke
+    if (combo >= 3) {
+      comboBreakFlash = 35;
+      playSound(220, 120, 'sawtooth', 0.25);
+    }
     combo = 0;
     multiplier = 1;
   }
@@ -998,6 +1014,7 @@ document.addEventListener('keydown', e => {
       lengthMilestoneFlash = 0;
       feverFlash = 0;
       powerUpFlash = 0;
+      comboBreakFlash = 0;
       invincible = 0;
       blinkTimer = 0;
       isBlinking = false;
@@ -1045,6 +1062,7 @@ document.addEventListener('keydown', e => {
     lengthMilestoneFlash = 0;
     feverFlash = 0;
     powerUpFlash = 0;
+    comboBreakFlash = 0;
     invincible = 0;
     blinkTimer = 0;
     isBlinking = false;
@@ -1117,4 +1135,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #68 - Trail particles enhanced during fever mode!");
+console.log("Basecade Commit #69 - Combo break notification added!");

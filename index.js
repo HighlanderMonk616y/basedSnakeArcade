@@ -395,7 +395,12 @@ function drawVignette() {
 }
 
 function draw() {
-  ctx.fillStyle = '#050508';
+  // Background with fever tint
+  if (isInFeverMode()) {
+    ctx.fillStyle = '#120a00';
+  } else {
+    ctx.fillStyle = '#050508';
+  }
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawStars();
@@ -1154,4 +1159,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade - Enhanced high score pulse when close to beating it!");
+console.log("Basecade Commit #72 - Background color shift during fever mode added!");

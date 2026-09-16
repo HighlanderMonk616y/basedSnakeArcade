@@ -573,11 +573,21 @@ function draw() {
     }
   });
 
-  // Draw food
+  // Draw food with proximity pulse
   foodPulse = (foodPulse + 0.22) % (Math.PI * 2);
-  const pulse = Math.sin(foodPulse) * 3 + (GRID_SIZE - (food.isPowerUp ? 4 : 7));
   
-  ctx.shadowBlur = food.isPowerUp ? 32 : 15;
+  // Calculate distance to snake head
+  const head = snake[0];
+  const distX = Math.abs(head.x - food.x);
+  const distY = Math.abs(head.y - food.y);
+  const dist = distX + distY;
+  const isClose = dist <= 4;
+  
+  const baseSize = GRID_SIZE - (food.isPowerUp ? 4 : 7);
+  const pulseStrength = isClose ? 5.5 : 3;
+  const pulse = Math.sin(foodPulse) * pulseStrength + baseSize;
+  
+  ctx.shadowBlur = food.isPowerUp ? (isClose ? 40 : 32) : (isClose ? 22 : 15);
   ctx.shadowColor = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillStyle = food.isPowerUp ? '#ff0' : '#f00';
   ctx.fillRect(
@@ -777,16 +787,16 @@ function draw() {
 
   // Enhanced high score pulse when close
   const distanceToHigh = highScore - score;
-  const isClose = distanceToHigh > 0 && distanceToHigh <= 50;
-  const highPulse = isClose 
+  const isCloseToHigh = distanceToHigh > 0 && distanceToHigh <= 50;
+  const highPulse = isCloseToHigh 
     ? Math.sin(Date.now() / 90) * 4 + 18 
     : (score >= highScore * 0.9 ? Math.sin(Date.now() / 120) * 3 + 16 : 16);
   
-  ctx.fillStyle = isClose ? '#ff0' : (score > highScore - 50 ? '#ff0' : '#fff');
+  ctx.fillStyle = isCloseToHigh ? '#ff0' : (score > highScore - 50 ? '#ff0' : '#fff');
   ctx.font = `bold ${highPulse}px monospace`;
   ctx.textAlign = 'right';
-  ctx.shadowColor = isClose ? '#ff0' : 'transparent';
-  ctx.shadowBlur = isClose ? 12 : 0;
+  ctx.shadowColor = isCloseToHigh ? '#ff0' : 'transparent';
+  ctx.shadowBlur = isCloseToHigh ? 12 : 0;
   ctx.fillText(`HIGH: ${highScore}`, canvas.width - 10, 25);
   ctx.shadowBlur = 0;
   
@@ -1159,4 +1169,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #72 - Background color shift during fever mode added!");
+console.log("Basecade Commit #73 - Food proximity pulse added!");

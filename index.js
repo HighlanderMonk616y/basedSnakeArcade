@@ -1,80 +1,3 @@
-// basecade - Classic Snake Arcade Game
-// A fun little browser-based Snake game
-
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-
-const GRID_SIZE = 20;
-const GRID_WIDTH = 20;
-const GRID_HEIGHT = 20;
-
-canvas.width = GRID_WIDTH * GRID_SIZE;
-canvas.height = GRID_HEIGHT * GRID_SIZE;
-
-// Simple Web Audio API for retro sounds
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let muted = false;
-let musicEnabled = true;
-let musicOscillators = [];
-
-function playSound(freq, duration, type = 'square', volume = 0.3) {
-  if (!audioContext || muted) return;
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-  gainNode.gain.value = volume;
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.start();
-  setTimeout(() => {
-    oscillator.stop();
-  }, duration);
-}
-
-function startMusic() {
-  if (!musicEnabled || !audioContext) return;
-  stopMusic();
-  
-  const notes = [330, 392, 523, 392, 330, 523, 659, 523];
-  let index = 0;
-  
-  const playNote = () => {
-    if (!musicEnabled) return;
-    playSound(notes[index % notes.length], 180, 'sawtooth', 0.15);
-    index++;
-    setTimeout(playNote, 220);
-  };
-  playNote();
-}
-
-function stopMusic() {
-  musicOscillators.forEach(osc => {
-    try { osc.stop(); } catch(e) {}
-  });
-  musicOscillators = [];
-}
-
-let snake = [
-  {x: 10, y: 10}
-];
-
-let dx = 1;
-let dy = 0;
-let nextDx = 1;
-let nextDy = 0;
-
-let food = {x: 15, y: 15, isPowerUp: false};
-let foodPulse = 0;
-
-let score = 0;
-let level = 1;
-let combo = 0;
-let comboTimer = 0;
-let multiplier = 1;
 let highScore = parseInt(localStorage.getItem('basecadeHighScore')) || 0;
 let highScoreHistory = JSON.parse(localStorage.getItem('basecadeHighScoreHistory')) || [];
 let bestCombo = parseInt(localStorage.getItem('basecadeBestCombo')) || 0;
@@ -1169,4 +1092,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit #73 - Food proximity pulse added!");
+console.log(Food proximity pulse added!");

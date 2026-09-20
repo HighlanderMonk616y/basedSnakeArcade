@@ -651,14 +651,26 @@ function draw() {
     ctx.fillText('INVINCIBLE', 10, 90);
   }
 
-  // Level progress bar
+  // Level progress bar with near-level-up pulse
   const scoreInLevel = score % 100;
   const levelProgress = scoreInLevel / 100;
+  const nearLevelUp = scoreInLevel >= 80;
+  
   ctx.fillStyle = '#333';
   ctx.fillRect(10, 115, 100, 6);
+  
   ctx.fillStyle = getLevelColor();
+  if (nearLevelUp) {
+    const pulseAlpha = 0.7 + Math.sin(Date.now() / 120) * 0.3;
+    ctx.globalAlpha = pulseAlpha;
+    ctx.shadowColor = getLevelColor();
+    ctx.shadowBlur = 8;
+  }
   ctx.fillRect(10, 115, 100 * levelProgress, 6);
-  ctx.fillStyle = '#aaa';
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+  
+  ctx.fillStyle = nearLevelUp ? getLevelColor() : '#aaa';
   ctx.font = '10px monospace';
   ctx.textAlign = 'left';
   ctx.fillText('LEVEL', 10, 112);
@@ -1188,4 +1200,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Combo timer bar now changes color by urgency!");
+console.log("Basecade - Level progress bar now pulses near level-up!");

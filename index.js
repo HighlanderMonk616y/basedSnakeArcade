@@ -573,7 +573,7 @@ function draw() {
     }
   });
 
-  // Draw food with proximity pulse
+  // Draw food with proximity pulse + power-up outer ring
   foodPulse = (foodPulse + 0.22) % (Math.PI * 2);
   
   // Calculate distance to snake head
@@ -586,6 +586,24 @@ function draw() {
   const baseSize = GRID_SIZE - (food.isPowerUp ? 4 : 7);
   const pulseStrength = isClose ? 5.5 : 3;
   const pulse = Math.sin(foodPulse) * pulseStrength + baseSize;
+  
+  // Outer ring for power-up food
+  if (food.isPowerUp) {
+    const ringSize = pulse + 8 + Math.sin(foodPulse * 1.5) * 3;
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 12;
+    ctx.globalAlpha = 0.6 + Math.sin(foodPulse) * 0.3;
+    ctx.strokeRect(
+      food.x * GRID_SIZE + (GRID_SIZE - ringSize)/2,
+      food.y * GRID_SIZE + (GRID_SIZE - ringSize)/2,
+      ringSize,
+      ringSize
+    );
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
   
   ctx.shadowBlur = food.isPowerUp ? (isClose ? 40 : 32) : (isClose ? 22 : 15);
   ctx.shadowColor = food.isPowerUp ? '#ff0' : '#f00';
@@ -1200,4 +1218,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade - Level progress bar now pulses near level-up!");
+console.log("Basecade - Soft outer ring added to power-up food!");

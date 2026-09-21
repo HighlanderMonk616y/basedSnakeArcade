@@ -222,13 +222,14 @@ function createConfetti(x, y) {
   }
 }
 
-function createScorePopup(x, y, points) {
+function createScorePopup(x, y, points, mult = 1) {
   scorePopups.push({
     x: x * GRID_SIZE + GRID_SIZE / 2,
     y: y * GRID_SIZE - 10,
     vy: -1.8,
     life: 55,
-    score: points
+    score: points,
+    mult: mult
   });
 }
 
@@ -756,13 +757,17 @@ function draw() {
     ctx.globalAlpha = 1;
   }
 
-  // Draw score popups
+  // Draw score popups (now with multiplier)
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
   scorePopups.forEach(p => {
     ctx.globalAlpha = p.life / 50;
     ctx.fillStyle = p.score > 20 ? '#ff0' : '#fff';
-    ctx.fillText(`+${p.score}`, p.x, p.y);
+    let text = `+${p.score}`;
+    if (p.mult && p.mult > 1) {
+      text += ` x${p.mult}`;
+    }
+    ctx.fillText(text, p.x, p.y);
   });
   ctx.globalAlpha = 1;
 
@@ -978,7 +983,7 @@ function update() {
 
     playSound(isPowerUp ? 1100 : 800 + combo * 60, 80, 'sine', 0.5);
     playSound(isPowerUp ? 1700 : 1250 + combo * 90, 100, 'sine', 0.4);
-    createScorePopup(food.x, food.y, points);
+    createScorePopup(food.x, food.y, points, multiplier);
     
     const newLevel = getLevelFromScore();
     if (newLevel > level) {
@@ -1218,4 +1223,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade - Soft outer ring added to power-up food!");
+console.log("Basecade Commit - Score popups now show the active multiplier!");

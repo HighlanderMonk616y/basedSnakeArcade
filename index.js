@@ -657,14 +657,28 @@ function draw() {
     ctx.fillRect(canvas.width / 2 - 60, 72, barWidth, 6);
   }
 
-  // Invincibility timer bar
+  // Invincibility timer bar (pulses red when low)
   if (invincible > 0) {
     const invPercent = invincible / 210;
+    const isLow = invincible < 40;
+    
     ctx.fillStyle = '#333';
     ctx.fillRect(10, 94, 100, 7);
-    ctx.fillStyle = '#ff0';
+    
+    if (isLow) {
+      const pulse = 0.6 + Math.sin(Date.now() / 80) * 0.4;
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#f00';
+      ctx.shadowColor = '#f00';
+      ctx.shadowBlur = 8;
+    } else {
+      ctx.fillStyle = '#ff0';
+    }
     ctx.fillRect(10, 94, 100 * invPercent, 7);
-    ctx.fillStyle = '#fff';
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    
+    ctx.fillStyle = isLow ? '#f00' : '#fff';
     ctx.font = '11px monospace';
     ctx.textAlign = 'left';
     ctx.fillText('INVINCIBLE', 10, 90);
@@ -1223,4 +1237,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade Commit - Score popups now show the active multiplier!");
+console.log("Basecade - Invincibility bar now pulses red when low!");

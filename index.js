@@ -504,10 +504,15 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,0.85)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Pulsing PAUSED title
+    const pausePulse = 30 + Math.sin(Date.now() / 250) * 3;
     ctx.fillStyle = '#0f0';
-    ctx.font = 'bold 32px monospace';
+    ctx.font = `bold ${pausePulse}px monospace`;
     ctx.textAlign = 'center';
+    ctx.shadowColor = '#0f0';
+    ctx.shadowBlur = 10 + Math.sin(Date.now() / 250) * 5;
     ctx.fillText('PAUSED', canvas.width/2, 120);
+    ctx.shadowBlur = 0;
 
     ctx.fillStyle = '#fff';
     ctx.font = '20px monospace';
@@ -1242,4 +1247,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Title now pulses on the start screen!");
+console.log("Pause title now pulses!");

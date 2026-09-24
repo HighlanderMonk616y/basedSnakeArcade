@@ -409,10 +409,15 @@ function draw() {
   drawNeonBorder();
 
   if (!gameStarted) {
+    // Pulsing title
+    const titlePulse = 26 + Math.sin(Date.now() / 300) * 3;
     ctx.fillStyle = '#0f0';
-    ctx.font = 'bold 28px monospace';
+    ctx.font = `bold ${titlePulse}px monospace`;
     ctx.textAlign = 'center';
+    ctx.shadowColor = '#0f0';
+    ctx.shadowBlur = 12 + Math.sin(Date.now() / 300) * 6;
     ctx.fillText('BASECADE', canvas.width/2, 80);
+    ctx.shadowBlur = 0;
 
     ctx.fillStyle = '#fff';
     ctx.font = '18px monospace';
@@ -1237,4 +1242,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Basecade - Invincibility bar now pulses red when low!");
+console.log("Title now pulses on the start screen!");

@@ -819,11 +819,16 @@ function draw() {
     levelUpFlash--;
   }
 
+  // Pulsing FEVER MODE text
   if (combo >= 8) {
+    const feverPulse = 16 + Math.sin(Date.now() / 150) * 3;
     ctx.fillStyle = '#ff0';
-    ctx.font = 'bold 18px monospace';
+    ctx.font = `bold ${feverPulse}px monospace`;
     ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 12 + Math.sin(Date.now() / 150) * 6;
     ctx.fillText('FEVER MODE!', canvas.width/2, 48);
+    ctx.shadowBlur = 0;
   }
 
   // Combo streak indicator
@@ -1247,4 +1252,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log("Pause title now pulses!");
+console.log;

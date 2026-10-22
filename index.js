@@ -848,10 +848,17 @@ function draw() {
   ctx.textAlign = 'left';
   ctx.fillText(muted ? '🔇 MUTED' : '🔊 SOUND ON', 10, canvas.height - 12);
 
+  // Score with fever glow
   ctx.fillStyle = '#0f0';
   ctx.font = '16px monospace';
   ctx.textAlign = 'left';
+  if (isInFeverMode()) {
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 8 + Math.sin(Date.now() / 120) * 4;
+  }
   ctx.fillText(`SCORE: ${score}`, 10, 25);
+  ctx.shadowBlur = 0;
+  
   ctx.fillText(`LEN: ${snake.length}`, 10, 48);
   ctx.fillText(`TIME: ${Math.floor(gameTime/60)}s`, 10, 71);
 
@@ -1252,4 +1259,4 @@ spawnFood();
 startMusic();
 draw();
 
-console.log;
+console.log("Basecade - Score text now glows during fever mode!");
